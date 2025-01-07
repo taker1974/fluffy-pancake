@@ -6,9 +6,7 @@ package ru.hogwarts.school.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotNull;
 
 import java.util.Objects;
 
@@ -18,29 +16,26 @@ import java.util.Objects;
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
  * @version 0.2
  */
-@SuppressWarnings({"LombokGetterMayBeUsed", "java:S6206"})
+@SuppressWarnings({"LombokGetterMayBeUsed", "LombokSetterMayBeUsed", "java:S6206"})
 @Entity
-public final class Student {
+public class Student {
 
     public static final int MIN_AGE = 6;
     public static final int MIN_NAME_LENGTH = 1;
     public static final int MAX_NAME_LENGTH = 100;
 
-    @NotNull
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private final Long id;
+    @GeneratedValue
+    private long id;
 
-    @NotNull
-    private final String name;
+    private String name;
 
-    private final int age;
+    private int age;
 
-    public Student(Long id, String name, int age) throws StudentException {
+    public Student() {
+    }
 
-        if (id == null) {
-            throw new StudentException("Id не может быть null");
-        }
+    public Student(long id, String name, int age) throws StudentException {
 
         if (name == null) {
             throw new StudentException("Имя не может быть null");
@@ -90,17 +85,27 @@ public final class Student {
                 '}';
     }
 
-    @NotNull
-    public Long getId() {
+    public long getId() {
         return id;
     }
 
-    @NotNull
     public String getName() {
         return name;
     }
 
     public int getAge() {
         return age;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
     }
 }

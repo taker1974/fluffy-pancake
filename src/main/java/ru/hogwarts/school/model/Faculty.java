@@ -6,10 +6,7 @@ package ru.hogwarts.school.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotNull;
-import org.springframework.lang.NonNull;
 
 import java.util.Objects;
 
@@ -19,29 +16,25 @@ import java.util.Objects;
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
  * @version 0.2
  */
-@SuppressWarnings("java:S6206")
+@SuppressWarnings({"LombokGetterMayBeUsed", "LombokSetterMayBeUsed", "java:S6206"})
 @Entity
-public final class Faculty {
+public class Faculty {
 
     public static final int MIN_COLOR_NAME_LENGTH = 1;
     public static final int MAX_COLOR_NAME_LENGTH = 100;
 
-    @NotNull
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private final Long id;
+    @GeneratedValue
+    private long id;
 
-    @NotNull
-    private final String name;
+    private String name;
 
-    @NotNull
-    private final String color;
+    private String color;
 
-    public Faculty(Long id, String name, String color) throws FacultyException {
+    public Faculty() {
+    }
 
-        if (id == null) {
-            throw new FacultyException("Id не может быть null");
-        }
+    public Faculty(long id, String name, String color) throws FacultyException {
 
         if (name == null) {
             throw new FacultyException("Имя не может быть null");
@@ -96,18 +89,27 @@ public final class Faculty {
                 '}';
     }
 
-    @NonNull
     public Long getId() {
         return id;
     }
 
-    @NonNull
     public String getName() {
         return name;
     }
 
-    @NonNull
     public String getColor() {
         return color;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 }
