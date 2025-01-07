@@ -42,7 +42,9 @@ public class FacultyService {
         if (faculties.containsKey(faculty.getId())) {
             throw new FacultyServiceException(FACULTY_EXISTS);
         }
+
         id++;
+
         try {
             return faculties.put(id, new Faculty(id, faculty.getName(), faculty.getColor()));
         } catch (FacultyException e) {
@@ -54,20 +56,20 @@ public class FacultyService {
         if (id == null) {
             throw new FacultyServiceException(ID_CANNOT_BE_NULL);
         }
-        if (faculties.containsKey(id)) {
-            return faculties.get(id);
+        if (!faculties.containsKey(id)) {
+            throw new FacultyServiceException(FACULTY_NOT_EXISTS);
         }
-        throw new FacultyServiceException(FACULTY_NOT_EXISTS);
+        return faculties.get(id);
     }
 
     public Faculty updateFaculty(Faculty faculty) throws FacultyServiceException {
         if (faculty == null) {
             throw new FacultyServiceException(FACULTY_CANNOT_BE_NULL);
         }
-        if (faculties.containsKey(faculty.getId())) {
-            faculties.put(faculty.getId(), faculty);
+        if (!faculties.containsKey(faculty.getId())) {
+            throw new FacultyServiceException(FACULTY_NOT_EXISTS);
         }
-        throw new FacultyServiceException(FACULTY_NOT_EXISTS);
+        return faculties.put(faculty.getId(), faculty);
     }
 
     public Faculty deleteFaculty(Long id) throws FacultyServiceException {

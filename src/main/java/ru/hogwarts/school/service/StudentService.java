@@ -42,7 +42,9 @@ public class StudentService {
         if (students.containsKey(student.getId())) {
             throw new StudentServiceException(STUDENT_EXISTS);
         }
+
         id++;
+
         try {
             return students.put(id, new Student(id, student.getName(), student.getAge()));
         } catch (StudentException e) {
@@ -54,20 +56,20 @@ public class StudentService {
         if (id == null) {
             throw new StudentServiceException(ID_CANNOT_BE_NULL);
         }
-        if (students.containsKey(id)) {
-            return students.get(id);
+        if (!students.containsKey(id)) {
+            throw new StudentServiceException(STUDENT_NOT_EXISTS);
         }
-        throw new StudentServiceException(STUDENT_NOT_EXISTS);
+        return students.get(id);
     }
 
     public Student updateStudent(Student student) throws StudentServiceException {
         if (student == null) {
             throw new StudentServiceException(STUDENT_CANNOT_BE_NULL);
         }
-        if (students.containsKey(student.getId())) {
-            students.put(student.getId(), student);
+        if (!students.containsKey(student.getId())) {
+            throw new StudentServiceException(STUDENT_NOT_EXISTS);
         }
-        throw new StudentServiceException(STUDENT_NOT_EXISTS);
+        return students.put(student.getId(), student);
     }
 
     public Student deleteStudent(Long id) throws StudentServiceException {
