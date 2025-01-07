@@ -4,18 +4,22 @@
 
 package ru.hogwarts.school.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
 
 import java.util.Objects;
 
 /**
- * Student.
+ * Студент.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.1
+ * @version 0.2
  */
-@Getter
+@SuppressWarnings({"LombokGetterMayBeUsed", "java:S6206"})
+@Entity
 public final class Student {
 
     public static final int MIN_AGE = 6;
@@ -23,6 +27,8 @@ public final class Student {
     public static final int MAX_NAME_LENGTH = 100;
 
     @NotNull
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private final Long id;
 
     @NotNull
@@ -82,5 +88,19 @@ public final class Student {
                 ", name='" + name + '\'' +
                 ", age=" + age +
                 '}';
+    }
+
+    @NotNull
+    public Long getId() {
+        return id;
+    }
+
+    @NotNull
+    public String getName() {
+        return name;
+    }
+
+    public int getAge() {
+        return age;
     }
 }

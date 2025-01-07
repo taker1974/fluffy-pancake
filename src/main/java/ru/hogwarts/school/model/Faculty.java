@@ -4,24 +4,31 @@
 
 package ru.hogwarts.school.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
+import org.springframework.lang.NonNull;
 
 import java.util.Objects;
 
 /**
- * Faculty.
+ * Факультет.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.1
+ * @version 0.2
  */
-@Getter
+@SuppressWarnings("java:S6206")
+@Entity
 public final class Faculty {
 
     public static final int MIN_COLOR_NAME_LENGTH = 1;
     public static final int MAX_COLOR_NAME_LENGTH = 100;
 
     @NotNull
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private final Long id;
 
     @NotNull
@@ -87,5 +94,20 @@ public final class Faculty {
                 ", name='" + name + '\'' +
                 ", color='" + color + '\'' +
                 '}';
+    }
+
+    @NonNull
+    public Long getId() {
+        return id;
+    }
+
+    @NonNull
+    public String getName() {
+        return name;
+    }
+
+    @NonNull
+    public String getColor() {
+        return color;
     }
 }
