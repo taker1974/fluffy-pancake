@@ -21,7 +21,6 @@ import java.util.Collections;
 @Service
 public class FacultyService {
 
-    public static final int GET_INITIAL_CAPACITY = 100;
     public static final String FACULTY_NOT_EXISTS = "Объект Faculty с таким id не существует";
     public static final String FACULTY_EXISTS = "Объект Faculty с таким id уже существует";
     public static final String ID_CANNOT_BE_NULL = "Id не может быть null";
@@ -78,18 +77,7 @@ public class FacultyService {
     }
 
     public Collection<Faculty> filterFacultiesByColor(String color) {
-        Collection<Faculty> result = new ArrayList<>(GET_INITIAL_CAPACITY);
-        if (color == null) {
-            return result;
-        }
-        if (color.isEmpty()) {
-            return result;
-        }
-
-        faculties.findAll().stream()
-                .filter(faculty -> faculty.getColor().equals(color))
-                .forEach(result::add);
-        return result;
+        return faculties.findByColor(color);
     }
 
     public Collection<Faculty> getFacultiesAll() {

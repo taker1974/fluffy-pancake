@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repositories.StudentsRepository;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -21,7 +20,6 @@ import java.util.Collections;
 @Service
 public class StudentService {
 
-    public static final int GET_INITIAL_CAPACITY = 100;
     public static final String STUDENT_NOT_EXISTS = "Объект Student с таким id не существует";
     public static final String STUDENT_EXISTS = "Объект Student с таким id уже существует";
     public static final String ID_CANNOT_BE_NULL = "Id не может быть null";
@@ -78,11 +76,7 @@ public class StudentService {
     }
 
     public Collection<Student> filterStudentsByAge(int age) {
-        Collection<Student> result = new ArrayList<>(GET_INITIAL_CAPACITY);
-        students.findAll().stream()
-                .filter(student -> student.getAge() == age)
-                .forEach(result::add);
-        return result;
+        return students.findByAge(age);
     }
 
     public Collection<Student> getStudentsAll() {
