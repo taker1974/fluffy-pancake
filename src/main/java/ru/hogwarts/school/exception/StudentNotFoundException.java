@@ -5,14 +5,14 @@
 package ru.hogwarts.school.exception;
 
 /**
- * Исключение, возникающее при работе с сервисом студентов.
+ * Исключение, возникающее при работе со студентом.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
  * @version 0.1
  */
-public class StudentServiceException extends RuntimeException {
+public class StudentNotFoundException extends RuntimeException {
 
-    public StudentServiceException(String message) {
+    public StudentNotFoundException(String message) {
         super(message);
     }
 }

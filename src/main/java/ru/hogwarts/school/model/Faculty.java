@@ -9,18 +9,20 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.hogwarts.school.exception.FacultyException;
 
 /**
  * Факультет.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.3
+ * @version 0.4
  */
 @Entity
 @Data
 @NoArgsConstructor
 public class Faculty {
+
+    public static final int MIN_FACULTY_NAME_LENGTH = 1;
+    public static final int MAX_FACULTY_NAME_LENGTH = 100;
 
     public static final int MIN_COLOR_NAME_LENGTH = 1;
     public static final int MAX_COLOR_NAME_LENGTH = 100;
@@ -38,25 +40,27 @@ public class Faculty {
      * @param id    идентификатор факультета
      * @param name  название факультета
      * @param color "цвет" факультета
-     * @throws FacultyException если имя или цвет не соответствуют требованиям MAX_COLOR_NAME_LENGTH, и
-     * MIN_COLOR_NAME_LENGTH
+     * @throws NullPointerException     если название факультета равно null или если "цвет" факультета равен null
+     * @throws IllegalArgumentException если название факультета короче MIN_FACULTY_NAME_LENGTH или длиннее
+     *                                  MAX_FACULTY_NAME_LENGTH или если "цвет" факультета короче
+     *                                  MIN_COLOR_NAME_LENGTH или длиннее MAX_COLOR_NAME_LENGTH
      */
     public Faculty(long id, String name, String color) {
 
         if (name == null) {
-            throw new FacultyException("Имя не может быть null");
+            throw new NullPointerException("Название факультета не может быть null");
         }
-        name = name.trim();
-        if (name.isEmpty() || name.length() > MAX_COLOR_NAME_LENGTH) {
-            throw new FacultyException("Длина имени должна быть от " + MIN_COLOR_NAME_LENGTH + " до " + MAX_COLOR_NAME_LENGTH + "символов");
+        if (name.isBlank() || name.length() > MAX_FACULTY_NAME_LENGTH) {
+            throw new IllegalArgumentException("Длина имени должна быть от " +
+                    MIN_FACULTY_NAME_LENGTH + " до " + MAX_FACULTY_NAME_LENGTH + " символов");
         }
 
         if (color == null) {
-            throw new FacultyException("Цвет не может быть null");
+            throw new NullPointerException("\"Цвет\" факультета не может быть null");
         }
-        color = color.trim();
-        if (color.isEmpty() || color.length() > MAX_COLOR_NAME_LENGTH) {
-            throw new FacultyException("Длина названия цвета должна быть от " + MIN_COLOR_NAME_LENGTH + " до " + MAX_COLOR_NAME_LENGTH + "символов");
+        if (color.isBlank() || color.length() > MAX_COLOR_NAME_LENGTH) {
+            throw new IllegalArgumentException("Длина названия \"цвета\" факультета должна быть от " +
+                    MIN_COLOR_NAME_LENGTH + " до " + MAX_COLOR_NAME_LENGTH + " символов");
         }
 
         this.id = id;

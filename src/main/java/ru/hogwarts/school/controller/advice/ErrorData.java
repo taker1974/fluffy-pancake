@@ -2,17 +2,13 @@
 // Терских Константин, kostus.online.1974@yandex.ru, 2025
 // Домашнее задание третьего курса ("Работа с кодом") Java Developer.
 
-package ru.hogwarts.school.exception;
+package ru.hogwarts.school.controller.advice;
 
 /**
- * Исключение, возникающее при работе с факультетом.
+ * Описание ошибки.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.1
+ * @version 0.3
  */
-public class FacultyException extends RuntimeException {
-
-    public FacultyException(String message) {
-        super(message);
-    }
+public record ErrorData(int code, String message) {
 }

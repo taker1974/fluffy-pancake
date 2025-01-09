@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.StudentService;
-import ru.hogwarts.school.exception.StudentServiceException;
 
 import java.util.Collection;
 
@@ -22,7 +21,7 @@ import java.util.Collection;
  * Контроллер для работы со студентами.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.1
+ * @version 0.2
  */
 @RestController
 @RequestMapping(value = "/student")
@@ -35,33 +34,33 @@ public class StudentController {
     }
 
     @PostMapping
-    public ResponseEntity<Student> addStudent(Student student) throws StudentServiceException {
+    public ResponseEntity<Student> addStudent(Student student) {
         return ResponseEntity.ok(studentService.addStudent(student));
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<Student> getStudent(@PathVariable long id) throws StudentServiceException {
+    public ResponseEntity<Student> getStudent(@PathVariable long id) {
         return ResponseEntity.ok(studentService.getStudent(id));
     }
 
     @PutMapping
-    public ResponseEntity<Student> updateStudent(Student student) throws StudentServiceException {
+    public ResponseEntity<Student> updateStudent(Student student) {
         return ResponseEntity.ok(studentService.updateStudent(student));
     }
 
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<Student> deleteStudent(@PathVariable long id) throws StudentServiceException {
+    public ResponseEntity<Student> deleteStudent(@PathVariable long id) {
         return ResponseEntity.ok(studentService.deleteStudent(id));
     }
 
     @RequestMapping(value = "/filter/age/{age}")
-    public ResponseEntity<Collection<Student>> filterStudentsByAge(int age) {
-        return ResponseEntity.ok(studentService.filterStudentsByAge(age));
+    public ResponseEntity<Collection<Student>> findStudentsByAge(int age) {
+        return ResponseEntity.ok(studentService.findStudentsByAge(age));
     }
 
     @GetMapping
-    public ResponseEntity<Collection<Student>> getStudentsAll() {
-        return ResponseEntity.ok(studentService.getStudentsAll());
+    public ResponseEntity<Collection<Student>> getAllStudents() {
+        return ResponseEntity.ok(studentService.getAllStudents());
     }
 }
 

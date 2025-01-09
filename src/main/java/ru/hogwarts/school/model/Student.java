@@ -9,13 +9,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.hogwarts.school.exception.StudentException;
 
 /**
  * Студент.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.3
+ * @version 0.4
  */
 @Entity
 @Data
@@ -39,22 +38,20 @@ public class Student {
      * @param id   идентификатор студента
      * @param name имя студента
      * @param age  возраст студента
-     * @throws StudentException если имя или возраст не может быть null, если имя длиннее MAX_NAME_LENGTH символов,
-     *                          если возраст меньше MIN_AGE лет
+     * @throws NullPointerException     если имя студента равно null
+     * @throws IllegalArgumentException если имя студента короче MIN_NAME_LENGTH или длиннее MAX_NAME_LENGTH символов
      */
     public Student(long id, String name, int age) {
 
         if (name == null) {
-            throw new StudentException("Имя не может быть null");
+            throw new NullPointerException("Имя студента не может быть null");
         }
-        name = name.trim();
-        if (name.isEmpty() || name.length() > MAX_NAME_LENGTH) {
-            throw new StudentException("Длина имени должна быть от " + MIN_NAME_LENGTH + " до " + MAX_NAME_LENGTH +
-                    "символов");
+        if (name.isBlank() || name.length() > MAX_NAME_LENGTH) {
+            throw new IllegalArgumentException("Длина имени студента должна быть от " + MIN_NAME_LENGTH + " до " + MAX_NAME_LENGTH + " символов");
         }
 
         if (age < MIN_AGE) {
-            throw new StudentException("Возраст не может быть меньше " + MIN_AGE + " лет");
+            throw new IllegalArgumentException("Возраст студента не может быть меньше " + MIN_AGE + " лет");
         }
 
         this.id = id;

@@ -14,15 +14,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.service.FacultyService;
-import ru.hogwarts.school.exception.FacultyServiceException;
 
 import java.util.Collection;
 
 /**
- * FacultyController.
+ * Контроллер для работы с факультетами.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.1
+ * @version 0.2
  */
 @RestController
 @RequestMapping(value = "/faculty")
@@ -35,33 +34,33 @@ public class FacultyController {
     }
 
     @PostMapping
-    public ResponseEntity<Faculty> addFaculty(Faculty faculty) throws FacultyServiceException {
+    public ResponseEntity<Faculty> addFaculty(Faculty faculty)  {
         return ResponseEntity.ok(facultyService.addFaculty(faculty));
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<Faculty> getFaculty(@PathVariable long id) throws FacultyServiceException {
+    public ResponseEntity<Faculty> getFaculty(@PathVariable long id)  {
         return ResponseEntity.ok(facultyService.getFaculty(id));
     }
 
     @PutMapping
-    public ResponseEntity<Faculty> updateFaculty(Faculty faculty) throws FacultyServiceException {
+    public ResponseEntity<Faculty> updateFaculty(Faculty faculty)  {
         return ResponseEntity.ok(facultyService.updateFaculty(faculty));
     }
 
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<Faculty> deleteFaculty(@PathVariable long id) throws FacultyServiceException {
+    public ResponseEntity<Faculty> deleteFaculty(@PathVariable long id)  {
         return ResponseEntity.ok(facultyService.deleteFaculty(id));
     }
 
     @RequestMapping(value = "/filter/color/{color}")
-    public ResponseEntity<Collection<Faculty>> filterFacultiesByColor(@PathVariable String color) {
-        return ResponseEntity.ok(facultyService.filterFacultiesByColor(color));
+    public ResponseEntity<Collection<Faculty>> findFacultiesByColor(@PathVariable String color) {
+        return ResponseEntity.ok(facultyService.findFacultiesByColor(color));
     }
 
     @GetMapping
-    public ResponseEntity<Collection<Faculty>> getFacultiesAll() {
-        return ResponseEntity.ok(facultyService.getFacultiesAll());
+    public ResponseEntity<Collection<Faculty>> getAllFaculties() {
+        return ResponseEntity.ok(facultyService.getAllFaculties());
     }
 }
 
