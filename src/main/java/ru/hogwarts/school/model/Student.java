@@ -7,18 +7,19 @@ package ru.hogwarts.school.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.hogwarts.school.exception.StudentException;
-
-import java.util.Objects;
 
 /**
  * Студент.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.2
+ * @version 0.3
  */
-@SuppressWarnings({"LombokGetterMayBeUsed", "LombokSetterMayBeUsed", "java:S6206"})
 @Entity
+@Data
+@NoArgsConstructor
 public class Student {
 
     public static final int MIN_AGE = 6;
@@ -31,12 +32,6 @@ public class Student {
 
     private String name;
     private int age;
-
-    /**
-     * Конструктор для JPA. Не делает ничего.
-     */
-    public Student() {
-    }
 
     /**
      * Конструктор.
@@ -64,54 +59,6 @@ public class Student {
 
         this.id = id;
         this.name = name;
-        this.age = age;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null) {
-            return false;
-        }
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Student that)) {
-            return false;
-        }
-        return age == that.age && Objects.equals(id, that.id) && Objects.equals(name, that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, age);
-    }
-
-    @Override
-    public String toString() {
-        return "Student{" + "id=" + id + ", name='" + name + '\'' + ", age=" + age + '}';
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setAge(int age) {
         this.age = age;
     }
 }
