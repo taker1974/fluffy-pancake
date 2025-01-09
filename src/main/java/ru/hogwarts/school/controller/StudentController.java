@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.StudentService;
-import ru.hogwarts.school.service.StudentServiceException;
+import ru.hogwarts.school.exception.StudentServiceException;
 
 import java.util.Collection;
 
 /**
- * StudentController.
+ * Контроллер для работы со студентами.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
  * @version 0.1

@@ -7,6 +7,7 @@ package ru.hogwarts.school.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import ru.hogwarts.school.exception.FacultyException;
 
 import java.util.Objects;
 
@@ -28,21 +29,31 @@ public class Faculty {
     private long id;
 
     private String name;
-
     private String color;
 
+    /**
+     * Конструктор для JPA. Не делает ничего.
+     */
     public Faculty() {
     }
 
-    public Faculty(long id, String name, String color) throws FacultyException {
+    /**
+     * Конструктор.
+     *
+     * @param id    идентификатор факультета
+     * @param name  название факультета
+     * @param color "цвет" факультета
+     * @throws FacultyException если имя или цвет не соответствуют требованиям MAX_COLOR_NAME_LENGTH, и
+     * MIN_COLOR_NAME_LENGTH
+     */
+    public Faculty(long id, String name, String color) {
 
         if (name == null) {
             throw new FacultyException("Имя не может быть null");
         }
         name = name.trim();
         if (name.isEmpty() || name.length() > MAX_COLOR_NAME_LENGTH) {
-            throw new FacultyException("Длина имени должна быть от " +
-                    MIN_COLOR_NAME_LENGTH + " до " + MAX_COLOR_NAME_LENGTH + "символов");
+            throw new FacultyException("Длина имени должна быть от " + MIN_COLOR_NAME_LENGTH + " до " + MAX_COLOR_NAME_LENGTH + "символов");
         }
 
         if (color == null) {
@@ -50,8 +61,7 @@ public class Faculty {
         }
         color = color.trim();
         if (color.isEmpty() || color.length() > MAX_COLOR_NAME_LENGTH) {
-            throw new FacultyException("Длина названия цвета должна быть от " +
-                    MIN_COLOR_NAME_LENGTH + " до " + MAX_COLOR_NAME_LENGTH + "символов");
+            throw new FacultyException("Длина названия цвета должна быть от " + MIN_COLOR_NAME_LENGTH + " до " + MAX_COLOR_NAME_LENGTH + "символов");
         }
 
         this.id = id;
@@ -70,9 +80,7 @@ public class Faculty {
         if (!(o instanceof Faculty that)) {
             return false;
         }
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(color, that.color);
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(color, that.color);
     }
 
     @Override
@@ -82,11 +90,7 @@ public class Faculty {
 
     @Override
     public String toString() {
-        return "Faculty{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", color='" + color + '\'' +
-                '}';
+        return "Faculty{" + "id=" + id + ", name='" + name + '\'' + ", color='" + color + '\'' + '}';
     }
 
     public Long getId() {

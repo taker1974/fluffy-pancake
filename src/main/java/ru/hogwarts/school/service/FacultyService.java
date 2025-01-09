@@ -5,15 +5,15 @@
 package ru.hogwarts.school.service;
 
 import org.springframework.stereotype.Service;
+import ru.hogwarts.school.exception.FacultyServiceException;
 import ru.hogwarts.school.model.Faculty;
-import ru.hogwarts.school.repositories.FacultiesRepository;
+import ru.hogwarts.school.repository.FacultyRepository;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
 /**
- * FacultyService.
+ * Сервис для работы с факультетами.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
  * @version 0.2
@@ -26,61 +26,61 @@ public class FacultyService {
     public static final String ID_CANNOT_BE_NULL = "Id не может быть null";
     public static final String FACULTY_CANNOT_BE_NULL = "Объект Faculty не может быть null";
 
-    private final FacultiesRepository faculties;
+    private final FacultyRepository facultyRepository;
 
-    public FacultyService(FacultiesRepository faculties) {
-        this.faculties = faculties;
+    public FacultyService(FacultyRepository faculties) {
+        this.facultyRepository = faculties;
     }
 
-    public Faculty addFaculty(Faculty faculty) throws FacultyServiceException {
+    public Faculty addFaculty(Faculty faculty) {
         if (faculty == null) {
             throw new FacultyServiceException(FACULTY_CANNOT_BE_NULL);
         }
-        if (faculties.findById(faculty.getId()).isPresent()) {
+        if (facultyRepository.findById(faculty.getId()).isPresent()) {
             throw new FacultyServiceException(FACULTY_EXISTS);
         }
-        return faculties.save(faculty);
+        return facultyRepository.save(faculty);
     }
 
-    public Faculty getFaculty(Long id) throws FacultyServiceException {
+    public Faculty getFaculty(Long id) {
         if (id == null) {
             throw new FacultyServiceException(ID_CANNOT_BE_NULL);
         }
-        var faculty = faculties.findById(id).orElse(null);
+        var faculty = facultyRepository.findById(id).orElse(null);
         if (faculty == null) {
             throw new FacultyServiceException(FACULTY_NOT_EXISTS);
         }
         return faculty;
     }
 
-    public Faculty updateFaculty(Faculty faculty) throws FacultyServiceException {
+    public Faculty updateFaculty(Faculty faculty) {
         if (faculty == null) {
             throw new FacultyServiceException(FACULTY_CANNOT_BE_NULL);
         }
-        var existingFaculty = faculties.findById(faculty.getId()).orElse(null);
+        var existingFaculty = facultyRepository.findById(faculty.getId()).orElse(null);
         if (existingFaculty == null) {
             throw new FacultyServiceException(FACULTY_NOT_EXISTS);
         }
-        return faculties.save(faculty);
+        return facultyRepository.save(faculty);
     }
 
-    public Faculty deleteFaculty(Long id) throws FacultyServiceException {
+    public Faculty deleteFaculty(Long id) {
         if (id == null) {
             throw new FacultyServiceException(ID_CANNOT_BE_NULL);
         }
-        var existingFaculty = faculties.findById(id).orElse(null);
+        var existingFaculty = facultyRepository.findById(id).orElse(null);
         if (existingFaculty == null) {
             throw new FacultyServiceException(FACULTY_NOT_EXISTS);
         }
-        faculties.deleteById(id);
+        facultyRepository.deleteById(id);
         return existingFaculty;
     }
 
     public Collection<Faculty> filterFacultiesByColor(String color) {
-        return faculties.findByColor(color);
+        return facultyRepository.findByColor(color);
     }
 
     public Collection<Faculty> getFacultiesAll() {
-        return Collections.unmodifiableCollection(faculties.findAll());
+        return Collections.unmodifiableCollection(facultyRepository.findAll());
     }
 }

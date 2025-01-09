@@ -7,6 +7,7 @@ package ru.hogwarts.school.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import ru.hogwarts.school.exception.StudentException;
 
 import java.util.Objects;
 
@@ -29,21 +30,32 @@ public class Student {
     private long id;
 
     private String name;
-
     private int age;
 
+    /**
+     * Конструктор для JPA. Не делает ничего.
+     */
     public Student() {
     }
 
-    public Student(long id, String name, int age) throws StudentException {
+    /**
+     * Конструктор.
+     *
+     * @param id   идентификатор студента
+     * @param name имя студента
+     * @param age  возраст студента
+     * @throws StudentException если имя или возраст не может быть null, если имя длиннее MAX_NAME_LENGTH символов,
+     *                          если возраст меньше MIN_AGE лет
+     */
+    public Student(long id, String name, int age) {
 
         if (name == null) {
             throw new StudentException("Имя не может быть null");
         }
         name = name.trim();
         if (name.isEmpty() || name.length() > MAX_NAME_LENGTH) {
-            throw new StudentException("Длина имени должна быть от " +
-                    MIN_NAME_LENGTH + " до " + MAX_NAME_LENGTH + "символов");
+            throw new StudentException("Длина имени должна быть от " + MIN_NAME_LENGTH + " до " + MAX_NAME_LENGTH +
+                    "символов");
         }
 
         if (age < MIN_AGE) {
@@ -66,9 +78,7 @@ public class Student {
         if (!(o instanceof Student that)) {
             return false;
         }
-        return age == that.age &&
-                Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name);
+        return age == that.age && Objects.equals(id, that.id) && Objects.equals(name, that.name);
     }
 
     @Override
@@ -78,11 +88,7 @@ public class Student {
 
     @Override
     public String toString() {
-        return "Student{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", age=" + age +
-                '}';
+        return "Student{" + "id=" + id + ", name='" + name + '\'' + ", age=" + age + '}';
     }
 
     public long getId() {
