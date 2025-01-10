@@ -53,11 +53,13 @@ public class Student {
             throw new NullPointerException("Имя студента не может быть null");
         }
         if (name.isBlank() || name.length() > MAX_NAME_LENGTH) {
-            throw new IllegalArgumentException("Длина имени студента должна быть от " + MIN_NAME_LENGTH + " до " + MAX_NAME_LENGTH + " символов");
+            throw new IllegalArgumentException("Длина имени студента должна быть от " +
+                    MIN_NAME_LENGTH + " до " + MAX_NAME_LENGTH + " символов");
         }
 
         if (age < MIN_AGE) {
-            throw new IllegalArgumentException("Возраст студента не может быть меньше " + MIN_AGE + " лет");
+            throw new IllegalArgumentException("Возраст студента не может быть меньше " +
+                    MIN_AGE + " лет");
         }
 
         this.id = id;
