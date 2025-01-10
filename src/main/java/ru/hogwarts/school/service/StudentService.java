@@ -109,7 +109,7 @@ public class StudentService {
     }
 
     public Collection<Student> getAllStudents() {
-        return Collections.unmodifiableCollection(studentRepository.findAll());
+        return studentRepository.findAll();
     }
 
     public Collection<Student> findStudentsByAge(int age) {

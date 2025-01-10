@@ -4,13 +4,17 @@
 
 package ru.hogwarts.school.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -38,7 +42,8 @@ public class Faculty {
     private String color;
 
     @OneToMany(mappedBy = "faculty")
-    private Set<Student> students;
+    @JsonIgnoreProperties("faculty")
+    private Collection<Student> students;
 
     /**
      * Конструктор.

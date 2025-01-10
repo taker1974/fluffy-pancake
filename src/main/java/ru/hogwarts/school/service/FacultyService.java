@@ -109,7 +109,7 @@ public class FacultyService {
     }
 
     public Collection<Faculty> getAllFaculties() {
-        return Collections.unmodifiableCollection(facultyRepository.findAll());
+        return facultyRepository.findAll();
     }
 
     public Collection<Faculty> findFacultiesByColor(String color) {
