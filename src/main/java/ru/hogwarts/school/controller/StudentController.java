@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.StudentService;
 
@@ -53,14 +54,24 @@ public class StudentController {
         return ResponseEntity.ok(studentService.deleteStudent(id));
     }
 
+    @GetMapping
+    public ResponseEntity<Collection<Student>> getAllStudents() {
+        return ResponseEntity.ok(studentService.getAllStudents());
+    }
+
     @RequestMapping(value = "/filter/age/{age}")
     public ResponseEntity<Collection<Student>> findStudentsByAge(int age) {
         return ResponseEntity.ok(studentService.findStudentsByAge(age));
     }
 
-    @GetMapping
-    public ResponseEntity<Collection<Student>> getAllStudents() {
-        return ResponseEntity.ok(studentService.getAllStudents());
+    @RequestMapping(value = "/filter/age")
+    public ResponseEntity<Collection<Student>> findStudentsByAgeBetween(int fromAge, int toAge) {
+        return ResponseEntity.ok(studentService.findStudentsByAgeBetween(fromAge, toAge));
+    }
+
+    @GetMapping(value = "/faculty/{id}")
+    public ResponseEntity<Faculty> getFaculty(@PathVariable long id) {
+        return ResponseEntity.ok(studentService.getStudent(id).getFaculty());
     }
 }
 

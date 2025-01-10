@@ -108,11 +108,15 @@ public class StudentService {
         return existingStudent;
     }
 
+    public Collection<Student> getAllStudents() {
+        return Collections.unmodifiableCollection(studentRepository.findAll());
+    }
+
     public Collection<Student> findStudentsByAge(int age) {
         return studentRepository.findByAge(age);
     }
 
-    public Collection<Student> getAllStudents() {
-        return Collections.unmodifiableCollection(studentRepository.findAll());
+    public Collection<Student> findStudentsByAgeBetween(int fromAge, int toAge) {
+        return studentRepository.findByAgeBetween(fromAge, toAge);
     }
 }

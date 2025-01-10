@@ -20,28 +20,45 @@ import ru.hogwarts.school.exception.StudentNotFoundException;
 @ControllerAdvice
 public class SchoolControllerAdvice {
 
-    @ExceptionHandler(NullPointerException.class)
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorData> handleException(RuntimeException e) {
+
+        if (e instanceof NullPointerException ex) {
+            return handleNullPointerException(ex);
+        } else if (e instanceof IllegalArgumentException ex) {
+            return handleIllegalArgumentException(ex);
+        } else if (e instanceof FacultyNotFoundException ex) {
+            return handleFacultyNotFoundException(ex);
+        } else if (e instanceof StudentNotFoundException ex) {
+            return handleStudentNotFoundException(ex);
+        }
+        return handleRuntimeExceptionDefault(e);
+    }
+
+    public ResponseEntity<ErrorData> handleRuntimeExceptionDefault(RuntimeException e) {
+
+        var code = HttpStatus.INTERNAL_SERVER_ERROR;
+        return new ResponseEntity<>(new ErrorData(code.value(), e.getLocalizedMessage()), code);
+    }
+
     public ResponseEntity<ErrorData> handleNullPointerException(NullPointerException e) {
 
         var code = HttpStatus.BAD_REQUEST;
         return new ResponseEntity<>(new ErrorData(code.value(), e.getLocalizedMessage()), code);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorData> handleIllegalArgumentException(IllegalArgumentException e) {
 
         var code = HttpStatus.NOT_ACCEPTABLE;
         return new ResponseEntity<>(new ErrorData(code.value(), e.getLocalizedMessage()), code);
     }
 
-    @ExceptionHandler(FacultyNotFoundException.class)
     public ResponseEntity<ErrorData> handleFacultyNotFoundException(FacultyNotFoundException e) {
 
         var code = HttpStatus.NOT_FOUND;
         return new ResponseEntity<>(new ErrorData(code.value(), e.getLocalizedMessage()), code);
     }
 
-    @ExceptionHandler(StudentNotFoundException.class)
     public ResponseEntity<ErrorData> handleStudentNotFoundException(StudentNotFoundException e) {
 
         var code = HttpStatus.NOT_FOUND;

@@ -108,11 +108,15 @@ public class FacultyService {
         return existingFaculty;
     }
 
+    public Collection<Faculty> getAllFaculties() {
+        return Collections.unmodifiableCollection(facultyRepository.findAll());
+    }
+
     public Collection<Faculty> findFacultiesByColor(String color) {
         return facultyRepository.findByColor(color);
     }
 
-    public Collection<Faculty> getAllFaculties() {
-        return Collections.unmodifiableCollection(facultyRepository.findAll());
+    public Collection<Faculty> findFacultiesByNameOrColorIgnoreCase(String name, String color) {
+        return facultyRepository.findByNameOrColorIgnoreCase(name, color);
     }
 }

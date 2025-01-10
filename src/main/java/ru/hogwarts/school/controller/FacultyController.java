@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.hogwarts.school.model.Faculty;
+import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.FacultyService;
 
 import java.util.Collection;
@@ -62,5 +63,9 @@ public class FacultyController {
     public ResponseEntity<Collection<Faculty>> getAllFaculties() {
         return ResponseEntity.ok(facultyService.getAllFaculties());
     }
-}
 
+    @GetMapping(value = "/students/{id}")
+    public ResponseEntity<Collection<Student>> findStudentsByFaculty(@PathVariable long id) {
+        return ResponseEntity.ok(facultyService.getFaculty(id).getStudents());
+    }
+}
