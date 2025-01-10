@@ -37,6 +37,8 @@ public class Student {
     private String name;
     private int age;
 
+    // https://stackoverflow.com/questions/41407921/eliminate-circular-json-in-java-spring-many-to-many-relationship
+    // Eliminate circular JSON in Java Spring
     @ManyToOne
     @JoinColumn(name = "faculty_id")
     @JsonIgnoreProperties("students")

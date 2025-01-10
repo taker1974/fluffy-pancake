@@ -41,6 +41,8 @@ public class Faculty {
     private String name;
     private String color;
 
+    // https://stackoverflow.com/questions/41407921/eliminate-circular-json-in-java-spring-many-to-many-relationship
+    // Eliminate circular JSON in Java Spring
     @OneToMany(mappedBy = "faculty")
     @JsonIgnoreProperties("faculty")
     private Collection<Student> students;
