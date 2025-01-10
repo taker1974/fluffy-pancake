@@ -10,11 +10,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -45,7 +42,7 @@ public class Faculty {
     // Eliminate circular JSON in Java Spring
     @OneToMany(mappedBy = "faculty")
     @JsonIgnoreProperties("faculty")
-    private Collection<Student> students;
+    private Set<Student> students;
 
     /**
      * Конструктор.
