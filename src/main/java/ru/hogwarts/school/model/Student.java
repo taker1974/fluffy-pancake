@@ -10,17 +10,20 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import ru.hogwarts.school.exception.student.BadStudentAgeException;
+import ru.hogwarts.school.exception.student.BadStudentNameException;
 
 /**
  * Студент.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.4
+ * @version 0.5
  */
+@Getter
 @Entity
-@Data
 @NoArgsConstructor
 public class Student {
 
@@ -28,46 +31,57 @@ public class Student {
     public static final int MIN_NAME_LENGTH = 1;
     public static final int MAX_NAME_LENGTH = 100;
 
+    @Setter
     @Id
     @GeneratedValue
     private long id;
 
     private String name;
+
+    /**
+     * Устанавливает имя студента.
+     *
+     * @param name имя студента
+     * @throws BadStudentNameException если имя не удовлетворяет условиям
+     */
+    public void setName(String name) {
+        if (name != null && !name.isBlank() && name.length() <= MAX_NAME_LENGTH) {
+            this.name = name;
+        }
+        throw new BadStudentNameException(MIN_NAME_LENGTH, MAX_NAME_LENGTH);
+    }
+
     private int age;
 
-    // https://stackoverflow.com/questions/41407921/eliminate-circular-json-in-java-spring-many-to-many-relationship
-    // Eliminate circular JSON in Java Spring
+    /**
+     * Устанавливает возраст студента.
+     * @param age возраст студента
+     * @throws BadStudentAgeException если возраст не удовлетворяет условиям
+     */
+    public void setAge(int age) {
+        if (age < MIN_AGE) {
+            throw new BadStudentAgeException(MIN_AGE);
+        }
+        this.age = age;
+    }
+
     @ManyToOne
     @JoinColumn(name = "faculty_id")
-    @JsonIgnoreProperties("students")
+    @JsonIgnoreProperties("students") // устранение цикличности при формировании JSON
     private Faculty faculty;
 
     /**
-     * Конструктор.
+     * Конструктор.<br>
+     * Выполняются {@link #setName(String)} и {@link #setAge(int)}, которые выбрасывают исключения.
      *
      * @param id   идентификатор студента
      * @param name имя студента
      * @param age  возраст студента
-     * @throws NullPointerException     если имя студента равно null
-     * @throws IllegalArgumentException если имя студента короче MIN_NAME_LENGTH или длиннее MAX_NAME_LENGTH символов
      */
     public Student(long id, String name, int age) {
-
-        if (name == null) {
-            throw new NullPointerException("Имя студента не может быть null");
-        }
-        if (name.isBlank() || name.length() > MAX_NAME_LENGTH) {
-            throw new IllegalArgumentException("Длина имени студента должна быть от " +
-                    MIN_NAME_LENGTH + " до " + MAX_NAME_LENGTH + " символов");
-        }
-
-        if (age < MIN_AGE) {
-            throw new IllegalArgumentException("Возраст студента не может быть меньше " +
-                    MIN_AGE + " лет");
-        }
+        setName(name);
+        setAge(age);
 
         this.id = id;
-        this.name = name;
-        this.age = age;
     }
 }

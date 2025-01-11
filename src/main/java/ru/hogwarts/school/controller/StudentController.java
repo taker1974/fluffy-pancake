@@ -74,4 +74,3 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getStudent(id).getFaculty());
     }
 }
-

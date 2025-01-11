@@ -5,26 +5,22 @@
 package ru.hogwarts.school.service;
 
 import org.springframework.stereotype.Service;
-import ru.hogwarts.school.exception.StudentNotFoundException;
+import ru.hogwarts.school.exception.student.NullStudentException;
+import ru.hogwarts.school.exception.student.StudentAlreadyExistsException;
+import ru.hogwarts.school.exception.student.StudentNotFoundException;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repository.StudentRepository;
 
 import java.util.Collection;
-import java.util.Collections;
 
 /**
  * Сервис для работы со студентами.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.3
+ * @version 0.5
  */
 @Service
 public class StudentService {
-
-    public static final String STUDENT_NOT_EXISTS = "Объект Student с таким id не существует";
-    public static final String STUDENT_EXISTS = "Объект Student с таким id уже существует";
-    public static final String ID_CANNOT_BE_NULL = "Id не может быть null";
-    public static final String STUDENT_CANNOT_BE_NULL = "Объект Student не может быть null";
 
     private final StudentRepository studentRepository;
 
@@ -37,15 +33,15 @@ public class StudentService {
      *
      * @param student {@link Student}
      * @return {@link Student}
-     * @throws NullPointerException     student равен null
-     * @throws StudentNotFoundException студент с таким id не существует
+     * @throws NullStudentException          student равен null
+     * @throws StudentAlreadyExistsException студент с таким id уже существует
      */
     public Student addStudent(Student student) {
         if (student == null) {
-            throw new NullPointerException(STUDENT_CANNOT_BE_NULL);
+            throw new NullStudentException();
         }
         if (studentRepository.findById(student.getId()).isPresent()) {
-            throw new StudentNotFoundException(STUDENT_EXISTS);
+            throw new StudentAlreadyExistsException();
         }
         return studentRepository.save(student);
     }
@@ -55,16 +51,12 @@ public class StudentService {
      *
      * @param id id студента
      * @return {@link Student}
-     * @throws NullPointerException     id равен null
      * @throws StudentNotFoundException студент с таким id не существует
      */
-    public Student getStudent(Long id) {
-        if (id == null) {
-            throw new NullPointerException(ID_CANNOT_BE_NULL);
-        }
+    public Student getStudent(long id) {
         var student = studentRepository.findById(id).orElse(null);
         if (student == null) {
-            throw new StudentNotFoundException(STUDENT_NOT_EXISTS);
+            throw new StudentNotFoundException();
         }
         return student;
     }
@@ -74,16 +66,16 @@ public class StudentService {
      *
      * @param student {@link Student}
      * @return {@link Student}
-     * @throws NullPointerException     student равен null
+     * @throws NullStudentException     student равен null
      * @throws StudentNotFoundException студент с таким id не существует
      */
     public Student updateStudent(Student student) {
         if (student == null) {
-            throw new NullPointerException(STUDENT_CANNOT_BE_NULL);
+            throw new NullStudentException();
         }
         var existingStudent = studentRepository.findById(student.getId()).orElse(null);
         if (existingStudent == null) {
-            throw new StudentNotFoundException(STUDENT_NOT_EXISTS);
+            throw new StudentNotFoundException();
         }
         return studentRepository.save(student);
     }
@@ -93,16 +85,12 @@ public class StudentService {
      *
      * @param id id студента
      * @return {@link Student}
-     * @throws NullPointerException     id равен null
      * @throws StudentNotFoundException студент с таким id не существует
      */
-    public Student deleteStudent(Long id) {
-        if (id == null) {
-            throw new NullPointerException(ID_CANNOT_BE_NULL);
-        }
+    public Student deleteStudent(long id) {
         var existingStudent = studentRepository.findById(id).orElse(null);
         if (existingStudent == null) {
-            throw new StudentNotFoundException(STUDENT_NOT_EXISTS);
+            throw new StudentNotFoundException();
         }
         studentRepository.deleteById(id);
         return existingStudent;
