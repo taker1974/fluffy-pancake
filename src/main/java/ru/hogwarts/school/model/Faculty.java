@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.hogwarts.school.exception.faculty.BadFacultyColorException;
 import ru.hogwarts.school.exception.faculty.BadFacultyNameException;
+import ru.hogwarts.school.tools.StringEx;
 
 import java.util.Set;
 
@@ -48,10 +49,10 @@ public class Faculty {
      * @throws BadFacultyNameException если название не удовлетворяет условиям
      */
     public void setName(String name) {
-        if (name != null && !name.isBlank() && name.length() <= MAX_FACULTY_NAME_LENGTH) {
-            this.name = name;
+        if (StringEx.isMeaningful(name, MIN_FACULTY_NAME_LENGTH, MAX_FACULTY_NAME_LENGTH)) {
+            throw new BadFacultyNameException(MIN_FACULTY_NAME_LENGTH, MAX_FACULTY_NAME_LENGTH);
         }
-        throw new BadFacultyNameException(MIN_FACULTY_NAME_LENGTH, MAX_FACULTY_NAME_LENGTH);
+        this.name = name;
     }
 
     private String color;
@@ -63,12 +64,10 @@ public class Faculty {
      * @throws BadFacultyColorException если название цвета не удовлетворяет условиям
      */
     public void setColor(String color) {
-        if (color != null && !color.isBlank() &&
-                color.length() >= MIN_COLOR_NAME_LENGTH &&
-                color.length() <= MAX_COLOR_NAME_LENGTH) {
-            this.color = color;
+        if (!StringEx.isMeaningful(color, MIN_COLOR_NAME_LENGTH, MAX_COLOR_NAME_LENGTH)) {
+            throw new BadFacultyColorException(MIN_COLOR_NAME_LENGTH, MAX_COLOR_NAME_LENGTH);
         }
-        throw new BadFacultyColorException(MIN_COLOR_NAME_LENGTH, MAX_COLOR_NAME_LENGTH);
+        this.color = color;
     }
 
     @OneToMany(mappedBy = "faculty")

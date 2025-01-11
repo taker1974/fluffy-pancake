@@ -10,11 +10,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.hogwarts.school.exception.student.BadStudentAgeException;
 import ru.hogwarts.school.exception.student.BadStudentNameException;
+import ru.hogwarts.school.tools.StringEx;
 
 /**
  * Студент.
@@ -45,16 +47,17 @@ public class Student {
      * @throws BadStudentNameException если имя не удовлетворяет условиям
      */
     public void setName(String name) {
-        if (name != null && !name.isBlank() && name.length() <= MAX_NAME_LENGTH) {
-            this.name = name;
+        if (StringEx.isMeaningful(name, MIN_NAME_LENGTH, MAX_NAME_LENGTH)) {
+            throw new BadStudentNameException(MIN_NAME_LENGTH, MAX_NAME_LENGTH);
         }
-        throw new BadStudentNameException(MIN_NAME_LENGTH, MAX_NAME_LENGTH);
+        this.name = name;
     }
 
     private int age;
 
     /**
      * Устанавливает возраст студента.
+     *
      * @param age возраст студента
      * @throws BadStudentAgeException если возраст не удовлетворяет условиям
      */
@@ -69,6 +72,10 @@ public class Student {
     @JoinColumn(name = "faculty_id")
     @JsonIgnoreProperties("students") // устранение цикличности при формировании JSON
     private Faculty faculty;
+
+    @Setter
+    @OneToOne
+    private Avatar avatar;
 
     /**
      * Конструктор.<br>
