@@ -4,20 +4,24 @@
 
 package ru.hogwarts.school.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-
-import java.util.Objects;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Студент.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.2
+ * @version 0.4
  */
-@SuppressWarnings({"LombokGetterMayBeUsed", "LombokSetterMayBeUsed", "java:S6206"})
 @Entity
+@Data
+@NoArgsConstructor
 public class Student {
 
     public static final int MIN_AGE = 6;
@@ -29,83 +33,41 @@ public class Student {
     private long id;
 
     private String name;
-
     private int age;
 
-    public Student() {
-    }
+    // https://stackoverflow.com/questions/41407921/eliminate-circular-json-in-java-spring-many-to-many-relationship
+    // Eliminate circular JSON in Java Spring
+    @ManyToOne
+    @JoinColumn(name = "faculty_id")
+    @JsonIgnoreProperties("students")
+    private Faculty faculty;
 
-    public Student(long id, String name, int age) throws StudentException {
+    /**
+     * Конструктор.
+     *
+     * @param id   идентификатор студента
+     * @param name имя студента
+     * @param age  возраст студента
+     * @throws NullPointerException     если имя студента равно null
+     * @throws IllegalArgumentException если имя студента короче MIN_NAME_LENGTH или длиннее MAX_NAME_LENGTH символов
+     */
+    public Student(long id, String name, int age) {
 
         if (name == null) {
-            throw new StudentException("Имя не может быть null");
+            throw new NullPointerException("Имя студента не может быть null");
         }
-        name = name.trim();
-        if (name.isEmpty() || name.length() > MAX_NAME_LENGTH) {
-            throw new StudentException("Длина имени должна быть от " +
-                    MIN_NAME_LENGTH + " до " + MAX_NAME_LENGTH + "символов");
+        if (name.isBlank() || name.length() > MAX_NAME_LENGTH) {
+            throw new IllegalArgumentException("Длина имени студента должна быть от " +
+                    MIN_NAME_LENGTH + " до " + MAX_NAME_LENGTH + " символов");
         }
 
         if (age < MIN_AGE) {
-            throw new StudentException("Возраст не может быть меньше " + MIN_AGE + " лет");
+            throw new IllegalArgumentException("Возраст студента не может быть меньше " +
+                    MIN_AGE + " лет");
         }
 
         this.id = id;
         this.name = name;
-        this.age = age;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null) {
-            return false;
-        }
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Student that)) {
-            return false;
-        }
-        return age == that.age &&
-                Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, age);
-    }
-
-    @Override
-    public String toString() {
-        return "Student{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", age=" + age +
-                '}';
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setAge(int age) {
         this.age = age;
     }
 }

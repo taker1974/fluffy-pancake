@@ -4,21 +4,29 @@
 
 package ru.hogwarts.school.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Objects;
+import java.util.Set;
 
 /**
  * Факультет.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.2
+ * @version 0.4
  */
-@SuppressWarnings({"LombokGetterMayBeUsed", "LombokSetterMayBeUsed", "java:S6206"})
 @Entity
+@Data
+@NoArgsConstructor
 public class Faculty {
+
+    public static final int MIN_FACULTY_NAME_LENGTH = 1;
+    public static final int MAX_FACULTY_NAME_LENGTH = 100;
 
     public static final int MIN_COLOR_NAME_LENGTH = 1;
     public static final int MAX_COLOR_NAME_LENGTH = 100;
@@ -28,88 +36,45 @@ public class Faculty {
     private long id;
 
     private String name;
-
     private String color;
 
-    public Faculty() {
-    }
+    // https://stackoverflow.com/questions/41407921/eliminate-circular-json-in-java-spring-many-to-many-relationship
+    // Eliminate circular JSON in Java Spring
+    @OneToMany(mappedBy = "faculty")
+    @JsonIgnoreProperties("faculty")
+    private Set<Student> students;
 
-    public Faculty(long id, String name, String color) throws FacultyException {
+    /**
+     * Конструктор.
+     *
+     * @param id    идентификатор факультета
+     * @param name  название факультета
+     * @param color "цвет" факультета
+     * @throws NullPointerException     если название факультета равно null или если "цвет" факультета равен null
+     * @throws IllegalArgumentException если название факультета короче MIN_FACULTY_NAME_LENGTH или длиннее
+     *                                  MAX_FACULTY_NAME_LENGTH или если "цвет" факультета короче
+     *                                  MIN_COLOR_NAME_LENGTH или длиннее MAX_COLOR_NAME_LENGTH
+     */
+    public Faculty(long id, String name, String color) {
 
         if (name == null) {
-            throw new FacultyException("Имя не может быть null");
+            throw new NullPointerException("Название факультета не может быть null");
         }
-        name = name.trim();
-        if (name.isEmpty() || name.length() > MAX_COLOR_NAME_LENGTH) {
-            throw new FacultyException("Длина имени должна быть от " +
-                    MIN_COLOR_NAME_LENGTH + " до " + MAX_COLOR_NAME_LENGTH + "символов");
+        if (name.isBlank() || name.length() > MAX_FACULTY_NAME_LENGTH) {
+            throw new IllegalArgumentException("Длина имени должна быть от " +
+                    MIN_FACULTY_NAME_LENGTH + " до " + MAX_FACULTY_NAME_LENGTH + " символов");
         }
 
         if (color == null) {
-            throw new FacultyException("Цвет не может быть null");
+            throw new NullPointerException("\"Цвет\" факультета не может быть null");
         }
-        color = color.trim();
-        if (color.isEmpty() || color.length() > MAX_COLOR_NAME_LENGTH) {
-            throw new FacultyException("Длина названия цвета должна быть от " +
-                    MIN_COLOR_NAME_LENGTH + " до " + MAX_COLOR_NAME_LENGTH + "символов");
+        if (color.isBlank() || color.length() > MAX_COLOR_NAME_LENGTH) {
+            throw new IllegalArgumentException("Длина названия \"цвета\" факультета должна быть от " +
+                    MIN_COLOR_NAME_LENGTH + " до " + MAX_COLOR_NAME_LENGTH + " символов");
         }
 
         this.id = id;
         this.name = name;
-        this.color = color;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null) {
-            return false;
-        }
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Faculty that)) {
-            return false;
-        }
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(color, that.color);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, color);
-    }
-
-    @Override
-    public String toString() {
-        return "Faculty{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", color='" + color + '\'' +
-                '}';
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getColor() {
-        return color;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setColor(String color) {
         this.color = color;
     }
 }
