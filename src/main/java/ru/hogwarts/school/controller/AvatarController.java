@@ -24,7 +24,7 @@ import ru.hogwarts.school.service.AvatarService;
  * Контроллер для работы с аватарками.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.3
+ * @version 0.4
  */
 @RestController
 @RequestMapping(value = "/avatar")
@@ -57,7 +57,7 @@ public class AvatarController {
     public void downloadAvatarFromFile(@PathVariable long studentId, HttpServletResponse response) {
         Avatar avatar = avatarService.getAvatar(studentId);
         try{
-            avatarService.transferTo(response, avatar);
+            avatarService.transfer(avatar, response);
         } catch (Exception e) {
             throw new IOAvatarFileException();
         }

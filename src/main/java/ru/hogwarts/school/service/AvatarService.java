@@ -4,10 +4,8 @@
 
 package ru.hogwarts.school.service;
 
-import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.hogwarts.school.exception.avatar.BadAvatarDataException;
@@ -145,13 +143,13 @@ public class AvatarService {
     }
 
     /**
-     * Передача файла аватара клиенту.
+     * Передача потока данных из аватара клиенту.
      *
-     * @param response {@link HttpServletResponse}
      * @param avatar   аватар
+     * @param response {@link HttpServletResponse}
      * @throws IOException в случае ошибок в потоках данных
      */
-    public void transferTo(HttpServletResponse response, Avatar avatar) throws IOException {
+    public void transfer(Avatar avatar, HttpServletResponse response) throws IOException {
         Path path = Path.of(avatar.getFilePath());
         try (
                 InputStream is = Files.newInputStream(path);
