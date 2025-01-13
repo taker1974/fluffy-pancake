@@ -7,14 +7,15 @@ package ru.hogwarts.school.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Аватар [студента или факультета].
+ * Аватар студента.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.1
+ * @version 0.2
  */
 @Entity
 @Data
@@ -31,4 +32,7 @@ public class Avatar {
     private String mediaType;
 
     private byte[] data;
+
+    @OneToOne
+    private Student student;
 }
