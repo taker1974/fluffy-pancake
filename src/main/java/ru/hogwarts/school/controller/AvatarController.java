@@ -20,11 +20,6 @@ import ru.hogwarts.school.exception.avatar.IOAvatarFileException;
 import ru.hogwarts.school.model.Avatar;
 import ru.hogwarts.school.service.AvatarService;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 /**
  * Контроллер для работы с аватарками.
  *
