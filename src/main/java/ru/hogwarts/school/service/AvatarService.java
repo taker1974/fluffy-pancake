@@ -4,7 +4,10 @@
 
 package ru.hogwarts.school.service;
 
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.hogwarts.school.exception.avatar.BadAvatarDataException;
@@ -63,7 +66,7 @@ public class AvatarService {
     }
 
     /**
-     * Загрузка аватара.
+     * Загрузка аватара на сервер в БД и в файл.
      *
      * @param studentId  ID студента
      * @param avatarFile файл аватара
@@ -131,7 +134,34 @@ public class AvatarService {
         return avatar;
     }
 
+    /**
+     * Получение аватара из БД по ID студента.
+     *
+     * @param idByStudent ID студента
+     * @return аватар
+     */
     public Avatar getAvatar(long idByStudent) {
         return avatarRepository.findById(idByStudent).orElse(null);
+    }
+
+    /**
+     * Передача файла аватара клиенту.
+     *
+     * @param response {@link HttpServletResponse}
+     * @param avatar   аватар
+     * @throws IOException в случае ошибок в потоках данных
+     */
+    public void transferTo(HttpServletResponse response, Avatar avatar) throws IOException {
+        Path path = Path.of(avatar.getFilePath());
+        try (
+                InputStream is = Files.newInputStream(path);
+                OutputStream os = response.getOutputStream();
+        ) {
+            is.transferTo(os);
+
+            response.setContentLength((int) avatar.getFileSize());
+            response.setContentType(avatar.getMediaType());
+            response.setStatus(HttpServletResponse.SC_OK);
+        }
     }
 }

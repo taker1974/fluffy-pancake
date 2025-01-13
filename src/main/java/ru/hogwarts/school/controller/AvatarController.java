@@ -4,6 +4,7 @@
 
 package ru.hogwarts.school.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,16 +16,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import ru.hogwarts.school.exception.avatar.IOAvatarFileException;
 import ru.hogwarts.school.model.Avatar;
 import ru.hogwarts.school.service.AvatarService;
 
-import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Контроллер для работы с аватарками.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.2
+ * @version 0.3
  */
 @RestController
 @RequestMapping(value = "/avatar")
@@ -38,12 +43,12 @@ public class AvatarController {
 
     @PostMapping(value = "/{studentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Avatar> uploadAvatar(@PathVariable long studentId,
-                                               @RequestParam MultipartFile avatar) throws IOException {
+                                               @RequestParam MultipartFile avatar) {
         return ResponseEntity.ok(avatarService.uploadAvatar(studentId, avatar));
     }
 
-    @GetMapping(value = "/{studentId}")
-    public ResponseEntity<byte[]> downloadAvatar(@PathVariable long studentId) throws IOException {
+    @GetMapping(value = "/db/{studentId}")
+    public ResponseEntity<byte[]> downloadAvatarFromDb(@PathVariable long studentId) {
         Avatar avatar = avatarService.getAvatar(studentId);
 
         HttpHeaders headers = new HttpHeaders();
@@ -51,5 +56,15 @@ public class AvatarController {
         headers.setContentLength(avatar.getData().length);
 
         return ResponseEntity.status(HttpStatus.OK).headers(headers).body(avatar.getData());
+    }
+
+    @GetMapping(value = "/file/{studentId}")
+    public void downloadAvatarFromFile(@PathVariable long studentId, HttpServletResponse response) {
+        Avatar avatar = avatarService.getAvatar(studentId);
+        try{
+            avatarService.transferTo(response, avatar);
+        } catch (Exception e) {
+            throw new IOAvatarFileException();
+        }
     }
 }
