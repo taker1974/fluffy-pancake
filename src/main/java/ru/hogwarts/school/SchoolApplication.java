@@ -16,6 +16,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class SchoolApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SchoolApplication.class, args);
+
+        SpringApplication.run(SchoolApplication.class, "--spring.profiles.active=prod");
     }
 }
