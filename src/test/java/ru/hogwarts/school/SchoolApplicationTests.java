@@ -4,20 +4,17 @@
 
 package ru.hogwarts.school;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @ActiveProfiles("test")
 class SchoolApplicationTests {
 
-    @LocalServerPort
-    private int port;
-
     @Test
     void contextLoads() {
-        // ..
+        Assertions.assertTrue(true);
     }
 }

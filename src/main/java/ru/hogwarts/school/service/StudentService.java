@@ -40,9 +40,6 @@ public class StudentService {
         if (student == null) {
             throw new NullStudentException();
         }
-        if (studentRepository.findById(student.getId()).isPresent()) {
-            throw new StudentAlreadyExistsException();
-        }
         return studentRepository.save(student);
     }
 

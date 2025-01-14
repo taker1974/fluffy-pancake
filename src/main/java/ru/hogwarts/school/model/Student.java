@@ -47,7 +47,7 @@ public class Student {
      * @throws BadStudentNameException если имя не удовлетворяет условиям
      */
     public void setName(String name) {
-        if (StringEx.isMeaningful(name, MIN_NAME_LENGTH, MAX_NAME_LENGTH)) {
+        if (!StringEx.isMeaningful(name, MIN_NAME_LENGTH, MAX_NAME_LENGTH)) {
             throw new BadStudentNameException(MIN_NAME_LENGTH, MAX_NAME_LENGTH);
         }
         this.name = name;
