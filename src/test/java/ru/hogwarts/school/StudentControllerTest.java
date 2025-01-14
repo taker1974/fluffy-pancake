@@ -13,7 +13,9 @@ import org.springframework.test.context.ActiveProfiles;
 /**
  * StudentControllerTest.<br>
  * <p>
- * Из условий ДЗ:<br>
+ * Из условий ДЗ<br>
+ * <a href="https://my.sky.pro/student-cabinet/stream-lesson/145842/homework-requirements">SkyPro</a><br>
+ * <a href="https://skyengpublic.notion.site/3-6-Spring-Boot-0070e5697e594bd0a5c6e5f96a29f950">Notion</a>:<br>
  * Шаг 1<br>
  * Создать класс для тестирования в пакете test.<br>
  * Создать по одному тесту на каждый эндпоинт контроллера StudentController, используя TestRestTemplate.<br>
