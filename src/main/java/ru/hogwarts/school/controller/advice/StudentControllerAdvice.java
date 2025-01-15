@@ -4,6 +4,8 @@
 
 package ru.hogwarts.school.controller.advice;
 
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -23,6 +25,7 @@ import ru.hogwarts.school.exception.student.StudentNotFoundException;
  * @version 0.6
  */
 @ControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class StudentControllerAdvice extends AbstractBaseControllerAdvice {
 
     @ExceptionHandler(BadStudentAgeException.class)
@@ -50,8 +53,8 @@ public class StudentControllerAdvice extends AbstractBaseControllerAdvice {
     }
 
     @ExceptionHandler(StudentAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleStudentNotFoundException(StudentAlreadyExistsException e,
-                                                                        WebRequest request) {
+    public ResponseEntity<ErrorResponse> handleStudentAlreadyExistsException(StudentAlreadyExistsException e,
+                                                                             WebRequest request) {
         return new ResponseEntity<>(
                 new ErrorResponse(StudentAlreadyExistsException.CODE, e.getMessage()),
                 HttpStatus.BAD_REQUEST);

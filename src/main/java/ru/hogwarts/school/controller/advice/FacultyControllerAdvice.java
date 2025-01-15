@@ -4,6 +4,8 @@
 
 package ru.hogwarts.school.controller.advice;
 
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -23,6 +25,7 @@ import ru.hogwarts.school.exception.faculty.NullFacultyException;
  * @version 0.5
  */
 @ControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class FacultyControllerAdvice extends AbstractBaseControllerAdvice {
 
     @ExceptionHandler(BadFacultyColorException.class)
