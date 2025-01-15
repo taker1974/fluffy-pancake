@@ -70,8 +70,8 @@ public class StudentService {
         if (student == null) {
             throw new NullStudentException();
         }
-        var existingStudent = studentRepository.findById(student.getId()).orElse(null);
-        if (existingStudent == null) {
+        var existingStudent = studentRepository.findById(student.getId());
+        if (existingStudent.isEmpty()) {
             throw new StudentNotFoundException();
         }
         return studentRepository.save(student);

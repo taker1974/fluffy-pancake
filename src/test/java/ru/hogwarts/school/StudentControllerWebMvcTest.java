@@ -7,6 +7,7 @@ package ru.hogwarts.school;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -82,6 +83,7 @@ class StudentControllerWebMvcTest {
         when(studentRepository.save(any(Student.class))).thenReturn(student);
         when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student));
 
+        // убедимся, что студент добавляется успешно
         mockMvc.perform(MockMvcRequestBuilders
                         .post("/student")
                         .content(buildJson(student))
@@ -112,6 +114,37 @@ class StudentControllerWebMvcTest {
         when(studentRepository.findById(student.getId())).thenReturn(Optional.empty());
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/student/" + 114)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(StudentNotFoundException.CODE));
+    }
+
+    @Test
+    void whenUpdateStudent_thenReturnsUpdatedStudent() throws Exception {
+
+        final long id = 916L;
+        final var student = new Student(id, "Hans Sharma", 969);
+        final var studentUpdated = new Student(id, student.getName(), 871);
+
+        // обновим существующего студента
+        when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student));
+        when(studentRepository.save(any(Student.class))).thenReturn(studentUpdated);
+        mockMvc.perform(MockMvcRequestBuilders
+                        .put("/student")
+                        .content(buildJson(studentUpdated))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(studentUpdated.getId()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(studentUpdated.getName()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.age").value(studentUpdated.getAge()));
+
+        // обновим несуществующего студента
+        when(studentRepository.findById(anyLong())).thenReturn(Optional.empty());
+        mockMvc.perform(MockMvcRequestBuilders
+                        .put("/student")
+                        .content(buildJson(studentUpdated))
+                        .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(StudentNotFoundException.CODE));
