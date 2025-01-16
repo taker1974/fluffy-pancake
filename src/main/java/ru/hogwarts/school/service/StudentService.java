@@ -85,12 +85,12 @@ public class StudentService {
      * @throws StudentNotFoundException студент с таким id не существует
      */
     public Student deleteStudent(long id) {
-        var existingStudent = studentRepository.findById(id).orElse(null);
-        if (existingStudent == null) {
+        var existingStudent = studentRepository.findById(id);
+        if (existingStudent.isEmpty()) {
             throw new StudentNotFoundException();
         }
         studentRepository.deleteById(id);
-        return existingStudent;
+        return existingStudent.get();
     }
 
     public Collection<Student> getAllStudents() {

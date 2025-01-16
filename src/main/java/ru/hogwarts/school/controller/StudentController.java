@@ -60,7 +60,7 @@ public class StudentController {
     }
 
     @RequestMapping(value = "/filter/age/{age}")
-    public ResponseEntity<Collection<Student>> findStudentsByAge(int age) {
+    public ResponseEntity<Collection<Student>> findStudentsByAge(@PathVariable int age) {
         return ResponseEntity.ok(studentService.findStudentsByAge(age));
     }
 

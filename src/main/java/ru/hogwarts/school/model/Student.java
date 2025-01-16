@@ -18,6 +18,8 @@ import ru.hogwarts.school.exception.student.BadStudentAgeException;
 import ru.hogwarts.school.exception.student.BadStudentNameException;
 import ru.hogwarts.school.tools.StringEx;
 
+import java.util.Objects;
+
 /**
  * Студент.
  *
@@ -68,6 +70,7 @@ public class Student {
         this.age = age;
     }
 
+    @Setter
     @ManyToOne
     @JoinColumn(name = "faculty_id")
     @JsonIgnoreProperties("students") // устранение цикличности при формировании JSON
@@ -90,5 +93,24 @@ public class Student {
         setAge(age);
 
         this.id = id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Student student = (Student) o;
+        return id == student.id &&
+                age == student.age &&
+                Objects.equals(name, student.name) &&
+                Objects.equals(faculty, student.faculty) &&
+                Objects.equals(avatar, student.avatar);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, age, faculty, avatar);
     }
 }

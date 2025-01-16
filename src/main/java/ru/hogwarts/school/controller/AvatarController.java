@@ -20,6 +20,9 @@ import ru.hogwarts.school.exception.avatar.IOAvatarFileException;
 import ru.hogwarts.school.model.Avatar;
 import ru.hogwarts.school.service.AvatarService;
 
+import java.util.Collection;
+import java.util.Optional;
+
 /**
  * Контроллер для работы с аватарками.
  *
@@ -42,22 +45,38 @@ public class AvatarController {
         return ResponseEntity.ok(avatarService.uploadAvatar(studentId, avatar));
     }
 
+    @GetMapping
+    public Collection<Avatar> getAllAvatars() {
+        return avatarService.getAllAvatars();
+    }
+
     @GetMapping(value = "/db/{studentId}")
     public ResponseEntity<byte[]> downloadAvatarFromDb(@PathVariable long studentId) {
-        Avatar avatar = avatarService.getAvatar(studentId);
+        Optional<Avatar> avatar = avatarService.getAvatar(studentId);
+        if (avatar.isEmpty()) {
+            // Аватар не установлен: здесь это не ошибка, но это может быть следствием того,
+            // что была ошибка при загрузке аватара.
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.parseMediaType(avatar.getMediaType()));
-        headers.setContentLength(avatar.getData().length);
+        headers.setContentType(MediaType.parseMediaType(avatar.get().getMediaType()));
+        headers.setContentLength(avatar.get().getData().length);
 
-        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(avatar.getData());
+        return ResponseEntity.status(HttpStatus.OK)
+                .headers(headers)
+                .body(avatar.get().getData());
     }
 
     @GetMapping(value = "/file/{studentId}")
     public void downloadAvatarFromFile(@PathVariable long studentId, HttpServletResponse response) {
-        Avatar avatar = avatarService.getAvatar(studentId);
-        try{
-            avatarService.transfer(avatar, response);
+        Optional<Avatar> avatar = avatarService.getAvatar(studentId);
+        if (avatar.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+        try {
+            avatarService.transfer(avatar.get(), response);
         } catch (Exception e) {
             throw new IOAvatarFileException();
         }

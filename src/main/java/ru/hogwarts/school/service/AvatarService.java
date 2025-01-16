@@ -7,6 +7,7 @@ package ru.hogwarts.school.service;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.hogwarts.school.exception.avatar.BadAvatarDataException;
 import ru.hogwarts.school.exception.avatar.BadAvatarFileNameException;
@@ -29,6 +30,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -75,10 +77,15 @@ public class AvatarService {
      *                                   BadAvatarDataException, BadAvatarDataException
      */
     public Avatar uploadAvatar(long studentId, MultipartFile avatarFile) {
-        Student student = studentRepository.findById(studentId).orElse(null);
-        if (student == null) {
+
+        // Сначала получим студента - без него всё остальное не имеет смысла.
+        Optional<Student> student = studentRepository.findById(studentId);
+        if (student.isEmpty()) {
             throw new StudentNotFoundException();
         }
+
+        // Выполним простые проверки:
+        // решим, сможем ли мы обработать файл.
 
         if (avatarFile == null) {
             throw new NullAvatarFileException();
@@ -90,17 +97,55 @@ public class AvatarService {
         }
 
         String originalFileName = avatarFile.getOriginalFilename();
-        if (!StringEx.isMeaningful(originalFileName, 1, FilesEx.MAX_FILE_NAME_LENGTH)) {
+        if (!StringEx.isMeaningful(originalFileName, 1, FilesEx.MAX_FILE_NAME_LENGTH) ||
+                originalFileName == null) {
             throw new BadAvatarFileNameException(1, FilesEx.MAX_FILE_NAME_LENGTH);
         }
 
+        // Получим уникальное имя файла.
         Optional<String> fileName = FilesEx.buildUniqueFileName(originalFileName,
                 "-" + UUID.randomUUID(), FilesEx.UniqueFileNamePolicy.SALT_LAST);
         if (fileName.isEmpty()) {
             throw new FailedBuildAvatarFileNameException();
         }
 
+        // Проверки выполнены,
+        // и теперь можно выполнять операции с БД и с файловой системой.
+
+        // Пробуем получить аватар студента.
+        Optional<Avatar> existingAvatar = avatarRepository.findByStudentId(studentId);
+        if (existingAvatar.isPresent()) {
+            // Если аватар уже есть, то удалим его из БД и из файловой системы.
+            avatarRepository.delete(existingAvatar.get());
+            try {
+                Files.deleteIfExists(Path.of(existingAvatar.get().getFilePath()));
+            } catch (IOException e) {
+                throw new IOAvatarFileException();
+            }
+        }
+
         Path filePath = Path.of(avatarsPath, fileName.get());
+
+        // Сначала сохраним аватар в БД.
+        // Создадим новый аватар с новыми данными,
+        // сопоставим его со студентом и запишем в БД.
+        Avatar avatar;
+        try {
+            avatar = new Avatar(0,
+                    filePath.toString(),
+                    avatarFile.getSize(),
+                    avatarFile.getContentType(),
+                    avatarFile.getBytes(),
+                    student.get());
+        } catch (IOException e) {
+            throw new BadAvatarDataException();
+        }
+
+        avatarRepository.save(avatar);
+        studentRepository.save(student.get());
+
+        // В последнюю очередь
+        // запишем новый файл аватара на диск.
         try {
             Files.createDirectories(filePath.getParent());
             Files.deleteIfExists(filePath);
@@ -116,19 +161,6 @@ public class AvatarService {
             throw new IOAvatarFileException();
         }
 
-        Avatar avatar = avatarRepository.findById(studentId).orElse(new Avatar());
-        avatar.setStudent(student);
-        avatar.setFilePath(filePath.toString());
-        avatar.setFileSize(avatarFile.getSize());
-        avatar.setMediaType(avatarFile.getContentType());
-
-        try {
-            avatar.setData(avatarFile.getBytes());
-        } catch (IOException e) {
-            throw new BadAvatarDataException();
-        }
-
-        avatarRepository.save(avatar);
         return avatar;
     }
 
@@ -138,8 +170,8 @@ public class AvatarService {
      * @param idByStudent ID студента
      * @return аватар
      */
-    public Avatar getAvatar(long idByStudent) {
-        return avatarRepository.findById(idByStudent).orElse(null);
+    public Optional<Avatar> getAvatar(long idByStudent) {
+        return avatarRepository.findById(idByStudent);
     }
 
     /**
@@ -161,5 +193,9 @@ public class AvatarService {
             response.setContentType(avatar.getMediaType());
             response.setStatus(HttpServletResponse.SC_OK);
         }
+    }
+
+    public Collection<Avatar> getAllAvatars() {
+        return avatarRepository.findAll();
     }
 }

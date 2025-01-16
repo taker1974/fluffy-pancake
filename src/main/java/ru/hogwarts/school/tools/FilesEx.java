@@ -55,7 +55,7 @@ public class FilesEx {
 
     /**
      * @param filePath путь к файлу в виде "resource1://resource2/.../fileName.ext"
-     * @return расширение файла без точки
+     * @return расширение файла с точкой
      */
     public static Optional<String> getFileExtensionPart(@NotNull String filePath) {
         try {
@@ -91,9 +91,9 @@ public class FilesEx {
             String name = fileName.substring(0, fileName.lastIndexOf('.'));
             String ext = fileName.substring(fileName.lastIndexOf('.'));
             return switch (policy) {
-                case SALT_LAST -> Optional.of(name + salt + "." + ext);
-                case SALT_FIRST -> Optional.of(salt + name + "." + ext);
-                case SALT_ONLY -> Optional.of(salt + "." + ext);
+                case SALT_LAST -> Optional.of(name + salt + ext);
+                case SALT_FIRST -> Optional.of(salt + name + ext);
+                case SALT_ONLY -> Optional.of(salt + ext);
             };
         } catch (Exception e) {
             return Optional.empty();

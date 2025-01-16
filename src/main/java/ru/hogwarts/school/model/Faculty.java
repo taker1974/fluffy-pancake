@@ -16,6 +16,7 @@ import ru.hogwarts.school.exception.faculty.BadFacultyColorException;
 import ru.hogwarts.school.exception.faculty.BadFacultyNameException;
 import ru.hogwarts.school.tools.StringEx;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -87,5 +88,23 @@ public class Faculty {
         setColor(color);
 
         this.id = id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Faculty faculty = (Faculty) o;
+        return id == faculty.id &&
+                Objects.equals(name, faculty.name) &&
+                Objects.equals(color, faculty.color) &&
+                Objects.equals(students, faculty.students);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, color, students);
     }
 }

@@ -7,6 +7,8 @@ package ru.hogwarts.school.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.hogwarts.school.model.Avatar;
 
+import java.util.Optional;
+
 /**
  * Репозиторий аватарок.
  *
@@ -14,4 +16,6 @@ import ru.hogwarts.school.model.Avatar;
  * @version 0.2
  */
 public interface AvatarRepository extends JpaRepository<Avatar, Long> {
+
+    Optional<Avatar> findByStudentId(long studentId);
 }
