@@ -10,12 +10,12 @@ import ru.hogwarts.school.model.Avatar;
 import java.util.Optional;
 
 /**
- * Репозиторий аватарок.
+ * Репозиторий аватарок студентов.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.2
+ * @version 0.7
  */
 public interface AvatarRepository extends JpaRepository<Avatar, Long> {
 
-    Optional<Avatar> findByStudentId(long studentId);
+    Optional<Avatar> findByStudentId(Long studentId);
 }

@@ -4,6 +4,7 @@
 
 package ru.hogwarts.school.controller;
 
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,18 +20,19 @@ import ru.hogwarts.school.service.StudentService;
 import java.util.Collection;
 
 /**
- * Контроллер для работы со студентами.
+ * Контроллер для работы со студентами и с их аватарками.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.2
+ * @version 0.7
  */
 @RestController
 @RequestMapping(value = "/student")
 public class StudentController {
 
+    @NotNull
     private final StudentService studentService;
 
-    public StudentController(StudentService studentService) {
+    public StudentController(@NotNull StudentService studentService) {
         this.studentService = studentService;
     }
 

@@ -10,7 +10,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -76,10 +75,6 @@ public class Student {
     @JsonIgnoreProperties("students") // устранение цикличности при формировании JSON
     private Faculty faculty;
 
-    @Setter
-    @OneToOne
-    private Avatar avatar;
-
     /**
      * Конструктор.<br>
      * Выполняются {@link #setName(String)} и {@link #setAge(int)}, которые выбрасывают исключения.
@@ -105,12 +100,11 @@ public class Student {
         return id == student.id &&
                 age == student.age &&
                 Objects.equals(name, student.name) &&
-                Objects.equals(faculty, student.faculty) &&
-                Objects.equals(avatar, student.avatar);
+                Objects.equals(faculty, student.faculty);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, age, faculty, avatar);
+        return Objects.hash(id, name, age, faculty);
     }
 }

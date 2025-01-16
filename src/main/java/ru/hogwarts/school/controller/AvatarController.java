@@ -5,10 +5,12 @@
 package ru.hogwarts.school.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,42 +22,44 @@ import ru.hogwarts.school.exception.avatar.IOAvatarFileException;
 import ru.hogwarts.school.model.Avatar;
 import ru.hogwarts.school.service.AvatarService;
 
-import java.util.Collection;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 
 /**
- * Контроллер для работы с аватарками.
+ * Контроллер для работы со студентами и с их аватарками.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.4
+ * @version 0.5
  */
 @RestController
-@RequestMapping(value = "/avatar")
+@RequestMapping(value = "/student")
 public class AvatarController {
 
+    @NotNull
     private final AvatarService avatarService;
 
-    public AvatarController(AvatarService avatarService) {
+    public AvatarController(@NotNull AvatarService avatarService) {
         this.avatarService = avatarService;
     }
 
-    @PostMapping(value = "/{studentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/avatar/{studentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Avatar> uploadAvatar(@PathVariable long studentId,
                                                @RequestParam MultipartFile avatar) {
         return ResponseEntity.ok(avatarService.uploadAvatar(studentId, avatar));
     }
 
-    @GetMapping
-    public Collection<Avatar> getAllAvatars() {
-        return avatarService.getAllAvatars();
+    @DeleteMapping(value = "/avatar/{studentId}")
+    public ResponseEntity<Optional<Avatar>> deleteAvatar(@PathVariable long studentId) {
+        return ResponseEntity.ok(avatarService.deleteAvatar(studentId));
     }
 
-    @GetMapping(value = "/db/{studentId}")
+    @GetMapping(value = "/avatar/db/{studentId}")
     public ResponseEntity<byte[]> downloadAvatarFromDb(@PathVariable long studentId) {
         Optional<Avatar> avatar = avatarService.getAvatar(studentId);
         if (avatar.isEmpty()) {
-            // Аватар не установлен: здесь это не ошибка, но это может быть следствием того,
-            // что была ошибка при загрузке аватара.
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
@@ -68,15 +72,28 @@ public class AvatarController {
                 .body(avatar.get().getData());
     }
 
-    @GetMapping(value = "/file/{studentId}")
+    @GetMapping(value = "/avatar/file/{studentId}")
     public void downloadAvatarFromFile(@PathVariable long studentId, HttpServletResponse response) {
-        Optional<Avatar> avatar = avatarService.getAvatar(studentId);
-        if (avatar.isEmpty()) {
+
+        final Optional<Avatar> optionalAvatar = avatarService.getAvatar(studentId);
+        if (optionalAvatar.isEmpty()) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
+        final Avatar avatar = optionalAvatar.get();
+
+        final Path path = Path.of(avatar.getFilePath());
         try {
-            avatarService.transfer(avatar.get(), response);
+            try (
+                    InputStream is = Files.newInputStream(path);
+                    OutputStream os = response.getOutputStream();
+            ) {
+                response.setContentLength((int) avatar.getFileSize());
+                response.setContentType(avatar.getMediaType());
+                response.setStatus(HttpServletResponse.SC_OK);
+
+                is.transferTo(os);
+            }
         } catch (Exception e) {
             throw new IOAvatarFileException();
         }

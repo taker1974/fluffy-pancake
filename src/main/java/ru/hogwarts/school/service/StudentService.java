@@ -4,6 +4,7 @@
 
 package ru.hogwarts.school.service;
 
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 import ru.hogwarts.school.exception.student.NullStudentException;
 import ru.hogwarts.school.exception.student.StudentAlreadyExistsException;
@@ -22,10 +23,11 @@ import java.util.Collection;
 @Service
 public class StudentService {
 
+    @NotNull
     private final StudentRepository studentRepository;
 
-    public StudentService(StudentRepository students) {
-        this.studentRepository = students;
+    public StudentService(@NotNull StudentRepository studentRepository) {
+        this.studentRepository = studentRepository;
     }
 
     /**

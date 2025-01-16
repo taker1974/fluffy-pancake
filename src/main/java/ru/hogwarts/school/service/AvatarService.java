@@ -5,6 +5,7 @@
 package ru.hogwarts.school.service;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,17 +31,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 /**
- * Сервис аватарок.
+ * Сервис аватара студента.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.1
+ * @version 0.6
  */
 @Service
 public class AvatarService {
@@ -57,16 +57,21 @@ public class AvatarService {
     @Value("${avatar.io.buffer.size}")
     private int avatarIoBufferSize;
 
+    @NotNull
     private final StudentRepository studentRepository;
+
+    @NotNull
     private final AvatarRepository avatarRepository;
 
-    public AvatarService(StudentRepository studentRepository, AvatarRepository avatarRepository) {
+    public AvatarService(@NotNull StudentRepository studentRepository,
+                         @NotNull AvatarRepository avatarRepository) {
         this.studentRepository = studentRepository;
         this.avatarRepository = avatarRepository;
     }
 
     /**
-     * Загрузка аватара на сервер в БД и в файл.
+     * Загрузка аватара студента.<br>
+     * Загрузка, сохранение в БД и в файл.
      *
      * @param studentId  ID студента
      * @param avatarFile файл аватара
@@ -76,16 +81,17 @@ public class AvatarService {
      *                                   FailedBuildAvatarFileNameException, IOAvatarFileException,
      *                                   BadAvatarDataException, BadAvatarDataException
      */
+    @Transactional
     public Avatar uploadAvatar(long studentId, MultipartFile avatarFile) {
 
         // Сначала получим студента - без него всё остальное не имеет смысла.
-        Optional<Student> student = studentRepository.findById(studentId);
-        if (student.isEmpty()) {
+        final Optional<Student> optionalStudent = studentRepository.findById(studentId);
+        if (optionalStudent.isEmpty()) {
             throw new StudentNotFoundException();
         }
+        final Student student = optionalStudent.get();
 
-        // Выполним простые проверки:
-        // решим, сможем ли мы обработать файл.
+        // Выполним простые проверки: решим, сможем ли мы обработать файл.
 
         if (avatarFile == null) {
             throw new NullAvatarFileException();
@@ -113,39 +119,35 @@ public class AvatarService {
         // и теперь можно выполнять операции с БД и с файловой системой.
 
         // Пробуем получить аватар студента.
-        Optional<Avatar> existingAvatar = avatarRepository.findByStudentId(studentId);
-        if (existingAvatar.isPresent()) {
-            // Если аватар уже есть, то удалим его из БД и из файловой системы.
-            avatarRepository.delete(existingAvatar.get());
+        Optional<Avatar> optionalAvatar = avatarRepository.findByStudentId(studentId);
+
+        // Если аватар уже есть, то удалим его из файловой системы.
+        if (optionalAvatar.isPresent()) {
             try {
-                Files.deleteIfExists(Path.of(existingAvatar.get().getFilePath()));
+                Files.deleteIfExists(Path.of(optionalAvatar.get().getFilePath()));
             } catch (IOException e) {
                 throw new IOAvatarFileException();
             }
         }
 
+        // Если аватар не был найден, то создадим его.
+        final Avatar avatar = optionalAvatar.orElseGet(Avatar::new);
+
         Path filePath = Path.of(avatarsPath, fileName.get());
 
-        // Сначала сохраним аватар в БД.
-        // Создадим новый аватар с новыми данными,
-        // сопоставим его со студентом и запишем в БД.
-        Avatar avatar;
+        // Сначала сохраним или обновим аватар в БД.
         try {
-            avatar = new Avatar(0,
-                    filePath.toString(),
-                    avatarFile.getSize(),
-                    avatarFile.getContentType(),
-                    avatarFile.getBytes(),
-                    student.get());
+            avatar.setFilePath(filePath.toString());
+            avatar.setFileSize(avatarFile.getSize());
+            avatar.setMediaType(avatarFile.getContentType());
+            avatar.setData(avatarFile.getBytes());
+            avatar.setStudent(student);
         } catch (IOException e) {
             throw new BadAvatarDataException();
         }
-
         avatarRepository.save(avatar);
-        studentRepository.save(student.get());
 
-        // В последнюю очередь
-        // запишем новый файл аватара на диск.
+        // В последнюю очередь запишем новый файл аватара на диск.
         try {
             Files.createDirectories(filePath.getParent());
             Files.deleteIfExists(filePath);
@@ -165,37 +167,40 @@ public class AvatarService {
     }
 
     /**
-     * Получение аватара из БД по ID студента.
+     * Получение аватара студента.
      *
-     * @param idByStudent ID студента
+     * @param studentId ID студента
      * @return аватар
      */
-    public Optional<Avatar> getAvatar(long idByStudent) {
-        return avatarRepository.findById(idByStudent);
+    public Optional<Avatar> getAvatar(long studentId) {
+        return avatarRepository.findByStudentId(studentId);
     }
 
     /**
-     * Передача потока данных из аватара клиенту.
+     * Удаление аватара студента.
      *
-     * @param avatar   аватар
-     * @param response {@link HttpServletResponse}
-     * @throws IOException в случае ошибок в потоках данных
+     * @param studentId ID студента
+     * @return аватар
      */
-    public void transfer(Avatar avatar, HttpServletResponse response) throws IOException {
-        Path path = Path.of(avatar.getFilePath());
-        try (
-                InputStream is = Files.newInputStream(path);
-                OutputStream os = response.getOutputStream();
-        ) {
-            is.transferTo(os);
+    @Transactional
+    public Optional<Avatar> deleteAvatar(long studentId) {
 
-            response.setContentLength((int) avatar.getFileSize());
-            response.setContentType(avatar.getMediaType());
-            response.setStatus(HttpServletResponse.SC_OK);
+        final Optional<Avatar> optionalAvatar = avatarRepository.findByStudentId(studentId);
+        if (optionalAvatar.isEmpty()) {
+            return Optional.empty();
         }
-    }
+        final Avatar avatar = optionalAvatar.get();
 
-    public Collection<Avatar> getAllAvatars() {
-        return avatarRepository.findAll();
+        // Удаляем аватар из БД.
+        avatarRepository.delete(avatar);
+
+        // Удаляем аватар из файловой системы.
+        try {
+            Files.deleteIfExists(Path.of(avatar.getFilePath()));
+        } catch (IOException e) {
+            throw new IOAvatarFileException();
+        }
+
+        return Optional.of(avatar);
     }
 }
