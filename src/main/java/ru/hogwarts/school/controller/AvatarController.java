@@ -45,6 +45,7 @@ public class AvatarController {
         this.avatarService = avatarService;
     }
 
+    // Здесь post потому, что всегда создаётся новый аватар, новый ресурс на сервере.
     @PostMapping(value = "/avatar/{studentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Avatar> uploadAvatar(@PathVariable long studentId,
                                                @RequestParam MultipartFile avatar) {

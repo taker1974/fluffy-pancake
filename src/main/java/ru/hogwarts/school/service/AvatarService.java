@@ -4,7 +4,6 @@
 
 package ru.hogwarts.school.service;
 
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -147,6 +146,11 @@ public class AvatarService {
         }
         avatarRepository.save(avatar);
 
+        // Обновим id аватара в объекте студента -
+        // в классе студента это просто long, без автоматической связи с объектом аватара
+        student.setAvatarId(avatar.getId());
+        studentRepository.save(student);
+
         // В последнюю очередь запишем новый файл аватара на диск.
         try {
             Files.createDirectories(filePath.getParent());
@@ -193,6 +197,13 @@ public class AvatarService {
 
         // Удаляем аватар из БД.
         avatarRepository.delete(avatar);
+
+        // См. uploadAvatar()
+        final Optional<Student> optionalStudent = studentRepository.findById(studentId);
+        if (optionalStudent.isPresent()) {
+            optionalStudent.get().setAvatarId(null);
+            studentRepository.save(optionalStudent.get());
+        }
 
         // Удаляем аватар из файловой системы.
         try {
