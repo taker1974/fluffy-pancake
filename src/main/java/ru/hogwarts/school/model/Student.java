@@ -75,11 +75,6 @@ public class Student {
     @JsonIgnoreProperties("students") // устранение цикличности при формировании JSON
     private Faculty faculty;
 
-    // Этот id не участвует в автоматизации hibernate
-    // - это просто Long id, устанавливаемый вручную.
-    @Setter
-    private Long avatarId;
-
     /**
      * Конструктор.<br>
      * Выполняются {@link #setName(String)} и {@link #setAge(int)}, которые выбрасывают исключения.
@@ -88,12 +83,11 @@ public class Student {
      * @param name имя студента
      * @param age  возраст студента
      */
-    public Student(long id, String name, int age, Long avatarId) {
+    public Student(long id, String name, int age) {
         setName(name);
         setAge(age);
 
         this.id = id;
-        this.avatarId = avatarId;
     }
 
     @Override
@@ -104,7 +98,6 @@ public class Student {
             return false;
         Student student = (Student) o;
         return id == student.id &&
-                avatarId == student.avatarId &&
                 age == student.age &&
                 Objects.equals(name, student.name) &&
                 Objects.equals(faculty, student.faculty);
@@ -112,6 +105,6 @@ public class Student {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, age, faculty, avatarId);
+        return Objects.hash(id, name, age, faculty);
     }
 }

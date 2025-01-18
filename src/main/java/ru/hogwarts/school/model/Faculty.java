@@ -50,7 +50,7 @@ public class Faculty {
      * @throws BadFacultyNameException если название не удовлетворяет условиям
      */
     public void setName(String name) {
-        if (StringEx.isMeaningful(name, MIN_FACULTY_NAME_LENGTH, MAX_FACULTY_NAME_LENGTH)) {
+        if (!StringEx.isMeaningful(name, MIN_FACULTY_NAME_LENGTH, MAX_FACULTY_NAME_LENGTH)) {
             throw new BadFacultyNameException(MIN_FACULTY_NAME_LENGTH, MAX_FACULTY_NAME_LENGTH);
         }
         this.name = name;

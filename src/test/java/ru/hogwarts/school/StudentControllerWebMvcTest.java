@@ -6,9 +6,9 @@ package ru.hogwarts.school;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpMethod;
@@ -21,12 +21,15 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.hogwarts.school.controller.StudentController;
 import ru.hogwarts.school.exception.student.StudentNotFoundException;
+import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.service.StudentService;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -79,6 +82,9 @@ class StudentControllerWebMvcTest {
             new Student(8, "Jennifer Lee", 25),
             new Student(9, "William Davis", 26),
     };
+
+    @Spy
+    private Faculty faculty = new Faculty(1, "Faculty", "0x4f");
 
     private String buildJson(Student student) {
         try {
@@ -140,7 +146,9 @@ class StudentControllerWebMvcTest {
     void whenUpdateStudent_thenReturnsUpdatedStudent() throws Exception {
 
         final var student = students[0];
-        final var studentUpdated = new Student(student.getId(), student.getName() + " updated", student.getAge() + 2);
+        final var studentUpdated = new Student(student.getId(),
+                student.getName() + " updated",
+                student.getAge() + 2);
         final String jsonUpdated = buildJson(studentUpdated);
 
         // обновим существующего студента
@@ -266,25 +274,35 @@ class StudentControllerWebMvcTest {
     @Test
     void whenGetFaculty_thenReturnsFaculty() throws Exception {
 
-//        final var student = students[0];
-//        student.setFaculty();
-//
-//        when(studentRepository.findByAgeBetween(anyInt(), anyInt())).thenReturn(Arrays.asList(ageInRangeStudents));
-//
-//        mockMvc.perform(MockMvcRequestBuilders
-//                        .request(HttpMethod.GET, "/student/filter/age?fromAge=23&toAge=28") // без разницы
-//                        .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(MockMvcResultMatchers.status().isOk())
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(ageInRangeStudents.length));
-//
-//        // получим пустой список студентов
-//        when(studentRepository.findByAgeBetween(anyInt(), anyInt())).thenReturn(Collections.emptyList());
-//
-//        mockMvc.perform(MockMvcRequestBuilders
-//                        .request(HttpMethod.GET, "/student/filter/age?fromAge=23&toAge=28") // без разницы
-//                        .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(MockMvcResultMatchers.status().isOk())
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(0));
-        Assertions.assertTrue(true);
+        final var student = students[0];
+
+        var set = new HashSet<>(List.of(student));
+        when(faculty.getStudents()).thenReturn(set);
+
+        when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student));
+
+        // получим имя факультета
+        mockMvc.perform(MockMvcRequestBuilders
+                        .request(HttpMethod.GET, String.format("/student/%d/faculty", student.getId()))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(faculty.getName()));
+
+        // не получим факультет потому, что он не установлен
+        student.setFaculty(null);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .request(HttpMethod.GET, String.format("/student/%d/faculty", student.getId()))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").doesNotExist());
+
+        // получим ошибку
+        when(studentService.getStudent(anyInt())).thenReturn(null);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .request(HttpMethod.GET, "/student/filter/age?fromAge=23&toAge=28") // без разницы
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 }

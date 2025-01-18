@@ -4,6 +4,8 @@
 
 package ru.hogwarts.school.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpHeaders;
@@ -32,11 +34,14 @@ import java.util.Optional;
  * Контроллер для работы со студентами и с их аватарками.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.5
+ * @version 0.7
  */
 @RestController
-@RequestMapping(value = "/student")
+@RequestMapping(value = "/avatar")
+@Tag(name = "Аватары студентов")
 public class AvatarController {
+
+    // Согласно правилу java:S4488 здесь НЕ используется @RequestMapping.
 
     @NotNull
     private final AvatarService avatarService;
@@ -46,18 +51,21 @@ public class AvatarController {
     }
 
     // Здесь post потому, что всегда создаётся новый аватар, новый ресурс на сервере.
-    @PostMapping(value = "/avatar/{studentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Загрузка аватара студента")
+    @PostMapping(value = "/student/{studentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Avatar> uploadAvatar(@PathVariable long studentId,
                                                @RequestParam MultipartFile avatar) {
         return ResponseEntity.ok(avatarService.uploadAvatar(studentId, avatar));
     }
 
-    @DeleteMapping(value = "/avatar/{studentId}")
+    @Operation(summary = "Удаление аватара студента")
+    @DeleteMapping(value = "/student/{studentId}")
     public ResponseEntity<Optional<Avatar>> deleteAvatar(@PathVariable long studentId) {
         return ResponseEntity.ok(avatarService.deleteAvatar(studentId));
     }
 
-    @GetMapping(value = "/avatar/db/{studentId}")
+    @Operation(summary = "Загрузка аватара студента из базы данных")
+    @GetMapping(value = "/student/db/{studentId}")
     public ResponseEntity<byte[]> downloadAvatarFromDb(@PathVariable long studentId) {
         Optional<Avatar> avatar = avatarService.getAvatar(studentId);
         if (avatar.isEmpty()) {
@@ -73,7 +81,8 @@ public class AvatarController {
                 .body(avatar.get().getData());
     }
 
-    @GetMapping(value = "/avatar/file/{studentId}")
+    @Operation(summary = "Загрузка аватара студента из файла")
+    @GetMapping(value = "/student/file/{studentId}")
     public void downloadAvatarFromFile(@PathVariable long studentId, HttpServletResponse response) {
 
         final Optional<Avatar> optionalAvatar = avatarService.getAvatar(studentId);

@@ -84,11 +84,8 @@ public class AvatarService {
     public Avatar uploadAvatar(long studentId, MultipartFile avatarFile) {
 
         // Сначала получим студента - без него всё остальное не имеет смысла.
-        final Optional<Student> optionalStudent = studentRepository.findById(studentId);
-        if (optionalStudent.isEmpty()) {
-            throw new StudentNotFoundException();
-        }
-        final Student student = optionalStudent.get();
+        final Student student = studentRepository.findById(studentId)
+                .orElseThrow(StudentNotFoundException::new);
 
         // Выполним простые проверки: решим, сможем ли мы обработать файл.
 
@@ -146,11 +143,6 @@ public class AvatarService {
         }
         avatarRepository.save(avatar);
 
-        // Обновим id аватара в объекте студента -
-        // в классе студента это просто long, без автоматической связи с объектом аватара
-        student.setAvatarId(avatar.getId());
-        studentRepository.save(student);
-
         // В последнюю очередь запишем новый файл аватара на диск.
         try {
             Files.createDirectories(filePath.getParent());
@@ -197,13 +189,6 @@ public class AvatarService {
 
         // Удаляем аватар из БД.
         avatarRepository.delete(avatar);
-
-        // См. uploadAvatar()
-        final Optional<Student> optionalStudent = studentRepository.findById(studentId);
-        if (optionalStudent.isPresent()) {
-            optionalStudent.get().setAvatarId(null);
-            studentRepository.save(optionalStudent.get());
-        }
 
         // Удаляем аватар из файловой системы.
         try {

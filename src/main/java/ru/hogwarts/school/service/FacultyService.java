@@ -54,11 +54,8 @@ public class FacultyService {
      * @throws FacultyNotFoundException факультет с таким id не существует
      */
     public Faculty getFaculty(long id) {
-        var faculty = facultyRepository.findById(id).orElse(null);
-        if (faculty == null) {
-            throw new FacultyNotFoundException();
-        }
-        return faculty;
+        return facultyRepository.findById(id)
+                .orElseThrow(FacultyNotFoundException::new);
     }
 
     /**
@@ -73,8 +70,7 @@ public class FacultyService {
         if (faculty == null) {
             throw new NullFacultyException();
         }
-        var existingFaculty = facultyRepository.findById(faculty.getId()).orElse(null);
-        if (existingFaculty == null) {
+        if (facultyRepository.findById(faculty.getId()).isEmpty()){
             throw new FacultyNotFoundException();
         }
         return facultyRepository.save(faculty);
@@ -88,10 +84,8 @@ public class FacultyService {
      * @throws FacultyNotFoundException факультет с таким id не существует
      */
     public Faculty deleteFaculty(long id) {
-        var existingFaculty = facultyRepository.findById(id).orElse(null);
-        if (existingFaculty == null) {
-            throw new FacultyNotFoundException();
-        }
+        final Faculty existingFaculty = facultyRepository.findById(id)
+                .orElseThrow(FacultyNotFoundException::new);
         facultyRepository.deleteById(id);
         return existingFaculty;
     }

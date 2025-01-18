@@ -6,10 +6,13 @@ package ru.hogwarts.school.service;
 
 import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
+import ru.hogwarts.school.exception.faculty.FacultyNotFoundException;
 import ru.hogwarts.school.exception.student.NullStudentException;
 import ru.hogwarts.school.exception.student.StudentAlreadyExistsException;
 import ru.hogwarts.school.exception.student.StudentNotFoundException;
+import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
+import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
 
 import java.util.Collection;
@@ -26,8 +29,13 @@ public class StudentService {
     @NotNull
     private final StudentRepository studentRepository;
 
-    public StudentService(@NotNull StudentRepository studentRepository) {
+    @NotNull
+    private final FacultyRepository facultyRepository;
+
+    public StudentService(@NotNull StudentRepository studentRepository,
+                          @NotNull FacultyRepository facultyRepository) {
         this.studentRepository = studentRepository;
+        this.facultyRepository = facultyRepository;
     }
 
     /**
@@ -42,6 +50,9 @@ public class StudentService {
         if (student == null) {
             throw new NullStudentException();
         }
+        if (studentRepository.findById(student.getId()).isPresent()) {
+            throw new StudentAlreadyExistsException();
+        }
         return studentRepository.save(student);
     }
 
@@ -53,11 +64,8 @@ public class StudentService {
      * @throws StudentNotFoundException студент с таким id не существует
      */
     public Student getStudent(long id) {
-        var student = studentRepository.findById(id).orElse(null);
-        if (student == null) {
-            throw new StudentNotFoundException();
-        }
-        return student;
+        return studentRepository.findById(id)
+                .orElseThrow(StudentNotFoundException::new);
     }
 
     /**
@@ -72,8 +80,7 @@ public class StudentService {
         if (student == null) {
             throw new NullStudentException();
         }
-        var existingStudent = studentRepository.findById(student.getId());
-        if (existingStudent.isEmpty()) {
+        if (studentRepository.findById(student.getId()).isEmpty()) {
             throw new StudentNotFoundException();
         }
         return studentRepository.save(student);
@@ -87,12 +94,48 @@ public class StudentService {
      * @throws StudentNotFoundException студент с таким id не существует
      */
     public Student deleteStudent(long id) {
-        var existingStudent = studentRepository.findById(id);
-        if (existingStudent.isEmpty()) {
-            throw new StudentNotFoundException();
-        }
+        final Student student = studentRepository.findById(id)
+                .orElseThrow(StudentNotFoundException::new);
         studentRepository.deleteById(id);
-        return existingStudent.get();
+        return student;
+    }
+
+    /**
+     * Установка факультета простым способом.
+     *
+     * @param studentId id студента
+     * @param facultyId id факультета
+     * @return {@link Student}
+     * @throws StudentNotFoundException студент с таким id не существует
+     * @throws FacultyNotFoundException факультет с таким id не существует
+     */
+    public Student setFaculty(long studentId, long facultyId) {
+
+        final Student student = studentRepository.findById(studentId)
+                .orElseThrow(StudentNotFoundException::new);
+
+        final Faculty faculty = facultyRepository.findById(facultyId)
+                .orElseThrow(FacultyNotFoundException::new);
+
+        student.setFaculty(faculty);
+        studentRepository.save(student);
+        return student;
+    }
+
+    /**
+     * Сброс факультета.
+     *
+     * @param studentId id студента
+     * @return {@link Student}
+     * @throws StudentNotFoundException студент с таким id не существует
+     */
+    public Student resetFaculty(long studentId) {
+        final Student student = studentRepository.findById(studentId)
+                .orElseThrow(StudentNotFoundException::new);
+
+        student.setFaculty(null);
+        studentRepository.save(student);
+        return student;
     }
 
     public Collection<Student> getAllStudents() {

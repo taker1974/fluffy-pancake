@@ -4,6 +4,8 @@
 
 package ru.hogwarts.school.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
@@ -23,11 +26,14 @@ import java.util.Collection;
  * Контроллер для работы со студентами и с их аватарками.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.7
+ * @version 0.8
  */
 @RestController
 @RequestMapping(value = "/student")
+@Tag(name = "Студенты")
 public class StudentController {
+
+    // Согласно правилу java:S4488 здесь НЕ используется @RequestMapping.
 
     @NotNull
     private final StudentService studentService;
@@ -36,43 +42,78 @@ public class StudentController {
         this.studentService = studentService;
     }
 
+    @Operation(summary = "Добавление нового студента")
     @PostMapping
     public ResponseEntity<Student> addStudent(Student student) {
         return ResponseEntity.ok(studentService.addStudent(student));
     }
 
+    @Operation(summary = "Получение студента по id")
     @GetMapping(value = "/{id}")
     public ResponseEntity<Student> getStudent(@PathVariable long id) {
         return ResponseEntity.ok(studentService.getStudent(id));
     }
 
-    @PutMapping
-    public ResponseEntity<Student> updateStudent(Student student) {
-        return ResponseEntity.ok(studentService.updateStudent(student));
-    }
-
-    @DeleteMapping(value = "/{id}")
-    public ResponseEntity<Student> deleteStudent(@PathVariable long id) {
-        return ResponseEntity.ok(studentService.deleteStudent(id));
-    }
-
+    @Operation(summary = "Получение всех студентов")
     @GetMapping
     public ResponseEntity<Collection<Student>> getAllStudents() {
         return ResponseEntity.ok(studentService.getAllStudents());
     }
 
-    @RequestMapping(value = "/filter/age/{age}")
+    @Operation(summary = "Обновление существующего студента")
+    @PutMapping
+    public ResponseEntity<Student> updateStudent(Student student) {
+        return ResponseEntity.ok(studentService.updateStudent(student));
+    }
+
+    @Operation(summary = "Удаление существующего студента по id")
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<Student> deleteStudent(@PathVariable long id) {
+        return ResponseEntity.ok(studentService.deleteStudent(id));
+    }
+
+    @Operation(summary = "Поиск студентов по точному совпадению возраста")
+    @GetMapping(value = "/filter/age/{age}")
     public ResponseEntity<Collection<Student>> findStudentsByAge(@PathVariable int age) {
         return ResponseEntity.ok(studentService.findStudentsByAge(age));
     }
 
-    @RequestMapping(value = "/filter/age")
+    @Operation(summary = "Поиск студентов по диапазону возраста")
+    @GetMapping(value = "/filter/age/between")
     public ResponseEntity<Collection<Student>> findStudentsByAgeBetween(int fromAge, int toAge) {
         return ResponseEntity.ok(studentService.findStudentsByAgeBetween(fromAge, toAge));
     }
 
-    @GetMapping(value = "/faculty/{id}")
+    @Operation(summary = "Получение факультета студента по id студента")
+    @GetMapping(value = "/{id}/faculty")
     public ResponseEntity<Faculty> getFaculty(@PathVariable long id) {
         return ResponseEntity.ok(studentService.getStudent(id).getFaculty());
+    }
+
+    /**
+     * Установка факультета студента через простой PUT запрос.<br>
+     * В основном для ручного тестирования через Swagger UI.
+     *
+     * @param studentId id студента
+     * @param facultyId id факультета
+     * @return ResponseEntity<Student>
+     */
+    @Operation(summary = "Установка факультета facultyId для студента studentId")
+    @PutMapping(value = "/{studentId}/faculty/{facultyId}")
+    public ResponseEntity<Student> setFaculty(@PathVariable long studentId, @PathVariable long facultyId) {
+        return ResponseEntity.ok(studentService.setFaculty(studentId, facultyId));
+    }
+
+    /**
+     * Сброс факультета студента через простой DELETE запрос.<br>
+     * В основном для ручного тестирования через Swagger UI.
+     *
+     * @param studentId id студента
+     * @return ResponseEntity<Student>
+     */
+    @Operation(summary = "Сброс факультета для студента studentId")
+    @DeleteMapping(value = "/{studentId}/faculty")
+    public ResponseEntity<Student> resetFaculty(@PathVariable long studentId) {
+        return ResponseEntity.ok(studentService.resetFaculty(studentId));
     }
 }
