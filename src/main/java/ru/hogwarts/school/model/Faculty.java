@@ -9,12 +9,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.Set;
 
 @Entity
 @Getter
 @Setter
+@ToString(exclude = "students")
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class Faculty {

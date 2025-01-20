@@ -1,8 +1,5 @@
 package ru.hogwarts.school.tools;
 
-import jakarta.validation.constraints.NotNull;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.util.Optional;
 
@@ -11,13 +8,6 @@ public class FilesEx {
     public static final int MAX_FQN_LENGTH = 4096;
 
     private FilesEx() {}
-
-    /**
-     * @return null || empty
-     */
-    public static boolean isNullOrEmpty(MultipartFile file) {
-        return file == null || file.isEmpty();
-    }
 
     /**
      * Каким образом при создании уникального имени файла будет<br>
@@ -37,12 +27,12 @@ public class FilesEx {
      * @param salt     уникальная часть имени файла
      * @return уникальное имя файла
      */
-    public static Optional<String> buildUniqueFileName(@NotNull String filePath,
-                                                       @NotNull String salt, UniqueFileNamePolicy policy) {
+    public static Optional<String> buildUniqueFileName(String filePath,
+                                                       String salt, UniqueFileNamePolicy policy) {
         try {
-            String fileName = new File(filePath).getName();
-            String name = fileName.substring(0, fileName.lastIndexOf('.'));
-            String ext = fileName.substring(fileName.lastIndexOf('.'));
+            final String fileName = new File(filePath).getName();
+            final String name = fileName.substring(0, fileName.lastIndexOf('.'));
+            final String ext = fileName.substring(fileName.lastIndexOf('.'));
             return switch (policy) {
                 case SALT_LAST -> Optional.of(name + salt + ext);
                 case SALT_FIRST -> Optional.of(salt + name + ext);
