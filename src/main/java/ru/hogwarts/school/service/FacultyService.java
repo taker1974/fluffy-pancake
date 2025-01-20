@@ -1,7 +1,3 @@
-// SkyPro
-// Терских Константин, kostus.online.1974@yandex.ru, 2025
-// Домашнее задание третьего курса ("Работа с кодом") Java Developer.
-
 package ru.hogwarts.school.service;
 
 import org.springframework.stereotype.Service;
@@ -14,12 +10,6 @@ import ru.hogwarts.school.repository.FacultyRepository;
 
 import java.util.Collection;
 
-/**
- * Сервис для работы с факультетами.
- *
- * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.5
- */
 @Service
 public class FacultyService {
 
@@ -29,14 +19,6 @@ public class FacultyService {
         this.facultyRepository = faculties;
     }
 
-    /**
-     * Добавление факультета.
-     *
-     * @param faculty {@link Faculty}
-     * @return {@link Faculty}
-     * @throws NullFacultyException          faculty равен null
-     * @throws FacultyAlreadyExistsException факультет с таким id уже существует
-     */
     public Faculty addFaculty(Faculty faculty) {
         if (faculty == null) {
             throw new NullFacultyException();
@@ -47,26 +29,11 @@ public class FacultyService {
         return facultyRepository.save(faculty);
     }
 
-    /**
-     * Получение факультета.
-     *
-     * @param id id факультета
-     * @return {@link Faculty}
-     * @throws FacultyNotFoundException факультет с таким id не существует
-     */
     public Faculty getFaculty(long id) {
         return facultyRepository.findById(id)
                 .orElseThrow(FacultyNotFoundException::new);
     }
 
-    /**
-     * Обновление факультета.
-     *
-     * @param faculty {@link Faculty}
-     * @return {@link Faculty}
-     * @throws NullFacultyException     faculty равен null
-     * @throws FacultyNotFoundException факультет с таким id не существует
-     */
     public Faculty updateFaculty(Faculty faculty) {
         if (faculty == null) {
             throw new NullFacultyException();
@@ -77,13 +44,6 @@ public class FacultyService {
         return facultyRepository.save(faculty);
     }
 
-    /**
-     * Удаление факультета.
-     *
-     * @param id id факультета
-     * @return {@link Faculty}
-     * @throws FacultyNotFoundException факультет с таким id не существует
-     */
     public Faculty deleteFaculty(long id) {
         final Faculty existingFaculty = facultyRepository.findById(id)
                 .orElseThrow(FacultyNotFoundException::new);
@@ -96,7 +56,7 @@ public class FacultyService {
     }
 
     public Collection<Faculty> findFacultiesByColor(String color) {
-        return facultyRepository.findByColor(color);
+        return facultyRepository.findByColorIgnoreCase(color);
     }
 
     public Collection<Faculty> findFacultiesByNameOrColorIgnoreCase(String name, String color) {

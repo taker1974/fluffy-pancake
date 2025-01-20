@@ -1,12 +1,7 @@
-// SkyPro
-// Терских Константин, kostus.online.1974@yandex.ru, 2025
-// Домашнее задание третьего курса ("Работа с кодом") Java Developer.
-
 package ru.hogwarts.school.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,21 +16,14 @@ import ru.hogwarts.school.service.FacultyService;
 
 import java.util.Collection;
 
-/**
- * Контроллер для работы с факультетами.
- *
- * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.7
- */
 @RestController
 @RequestMapping(value = "/faculty")
 @Tag(name = "Факультеты")
 public class FacultyController {
 
-    @NotNull
     private final FacultyService facultyService;
 
-    public FacultyController(@NotNull FacultyService facultyService) {
+    public FacultyController(FacultyService facultyService) {
         this.facultyService = facultyService;
     }
 

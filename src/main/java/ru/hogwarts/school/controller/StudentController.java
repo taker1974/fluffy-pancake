@@ -1,12 +1,7 @@
-// SkyPro
-// Терских Константин, kostus.online.1974@yandex.ru, 2025
-// Домашнее задание третьего курса ("Работа с кодом") Java Developer.
-
 package ru.hogwarts.school.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,21 +16,14 @@ import ru.hogwarts.school.service.StudentService;
 
 import java.util.Collection;
 
-/**
- * Контроллер для работы со студентами и с их аватарками.
- *
- * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.8
- */
 @RestController
 @RequestMapping(value = "/student")
 @Tag(name = "Студенты")
 public class StudentController {
 
-    @NotNull
     private final StudentService studentService;
 
-    public StudentController(@NotNull StudentService studentService) {
+    public StudentController(StudentService studentService) {
         this.studentService = studentService;
     }
 
@@ -87,27 +75,12 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getStudent(id).getFaculty());
     }
 
-    /**
-     * Установка факультета студента через простой PUT запрос.<br>
-     * В основном для ручного тестирования через Swagger UI.
-     *
-     * @param studentId id студента
-     * @param facultyId id факультета
-     * @return ResponseEntity<Student>
-     */
     @Operation(summary = "Установка факультета facultyId для студента studentId")
     @PutMapping(value = "/{studentId}/faculty/{facultyId}")
     public ResponseEntity<Student> setFaculty(@PathVariable long studentId, @PathVariable long facultyId) {
         return ResponseEntity.ok(studentService.setFaculty(studentId, facultyId));
     }
 
-    /**
-     * Сброс факультета студента через простой DELETE запрос.<br>
-     * В основном для ручного тестирования через Swagger UI.
-     *
-     * @param studentId id студента
-     * @return ResponseEntity<Student>
-     */
     @Operation(summary = "Сброс факультета для студента studentId")
     @DeleteMapping(value = "/{studentId}/faculty")
     public ResponseEntity<Student> resetFaculty(@PathVariable long studentId) {

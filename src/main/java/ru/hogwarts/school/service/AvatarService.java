@@ -1,10 +1,5 @@
-// SkyPro
-// Терских Константин, kostus.online.1974@yandex.ru, 2025
-// Домашнее задание третьего курса ("Работа с кодом") Java Developer.
-
 package ru.hogwarts.school.service;
 
-import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,12 +31,6 @@ import java.util.UUID;
 
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
-/**
- * Сервис аватара студента.
- *
- * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.6
- */
 @Service
 public class AvatarService {
 
@@ -57,30 +46,15 @@ public class AvatarService {
     @Value("${avatar.io.buffer.size}")
     private int avatarIoBufferSize;
 
-    @NotNull
     private final StudentRepository studentRepository;
-
-    @NotNull
     private final AvatarRepository avatarRepository;
 
-    public AvatarService(@NotNull StudentRepository studentRepository,
-                         @NotNull AvatarRepository avatarRepository) {
+    public AvatarService(StudentRepository studentRepository,
+                         AvatarRepository avatarRepository) {
         this.studentRepository = studentRepository;
         this.avatarRepository = avatarRepository;
     }
 
-    /**
-     * Загрузка аватара студента.<br>
-     * Загрузка, сохранение в БД и в файл.
-     *
-     * @param studentId  ID студента
-     * @param avatarFile файл аватара
-     * @return аватар
-     * @throws StudentNotFoundException, NullAvatarFileException, BadAvatarSizeException,
-     *                                   BadAvatarFileNameException, IOAvatarFileException, BadAvatarDataException,
-     *                                   FailedBuildAvatarFileNameException, IOAvatarFileException,
-     *                                   BadAvatarDataException, BadAvatarDataException
-     */
     @Transactional
     public Avatar uploadAvatar(long studentId, MultipartFile avatarFile) {
 
@@ -99,18 +73,14 @@ public class AvatarService {
             throw new BadAvatarSizeException(avatarSizeMin, avatarSizeMax);
         }
 
-        String originalFileName = avatarFile.getOriginalFilename();
-        if (!StringEx.isMeaningful(originalFileName, 1, FilesEx.MAX_FILE_NAME_LENGTH) ||
-                originalFileName == null) {
-            throw new BadAvatarFileNameException(1, FilesEx.MAX_FILE_NAME_LENGTH);
-        }
+        final String originalFileName = StringEx.getMeaningful(avatarFile.getOriginalFilename(),
+                        1, FilesEx.MAX_FQN_LENGTH)
+                .orElseThrow(() -> new BadAvatarFileNameException(1, FilesEx.MAX_FQN_LENGTH));
 
         // Получим уникальное имя файла.
-        Optional<String> fileName = FilesEx.buildUniqueFileName(originalFileName,
-                "-" + UUID.randomUUID(), FilesEx.UniqueFileNamePolicy.SALT_LAST);
-        if (fileName.isEmpty()) {
-            throw new FailedBuildAvatarFileNameException();
-        }
+        final String fileName = FilesEx.buildUniqueFileName(originalFileName,
+                        "-" + UUID.randomUUID(), FilesEx.UniqueFileNamePolicy.SALT_LAST)
+                .orElseThrow(FailedBuildAvatarFileNameException::new);
 
         // Проверки выполнены,
         // и теперь можно выполнять операции с БД и с файловой системой.
@@ -130,7 +100,7 @@ public class AvatarService {
         // Если аватар не был найден, то создадим его.
         final Avatar avatar = optionalAvatar.orElseGet(Avatar::new);
 
-        Path filePath = Path.of(avatarsPath, fileName.get());
+        Path filePath = Path.of(avatarsPath, fileName);
 
         // Сначала сохраним или обновим аватар в БД.
         try {
@@ -163,22 +133,10 @@ public class AvatarService {
         return avatar;
     }
 
-    /**
-     * Получение аватара студента.
-     *
-     * @param studentId ID студента
-     * @return аватар
-     */
     public Optional<Avatar> getAvatar(long studentId) {
         return avatarRepository.findByStudentId(studentId);
     }
 
-    /**
-     * Удаление аватара студента.
-     *
-     * @param studentId ID студента
-     * @return аватар
-     */
     @Transactional
     public Optional<Avatar> deleteAvatar(long studentId) {
 

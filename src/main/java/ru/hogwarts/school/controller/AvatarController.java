@@ -1,13 +1,8 @@
-// SkyPro
-// Терских Константин, kostus.online.1974@yandex.ru, 2025
-// Домашнее задание третьего курса ("Работа с кодом") Java Developer.
-
 package ru.hogwarts.school.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,21 +26,14 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Optional;
 
-/**
- * Контроллер для работы со студентами и с их аватарками.
- *
- * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.7
- */
 @RestController
 @RequestMapping(value = "/avatar")
 @Tag(name = "Аватары студентов")
 public class AvatarController {
 
-    @NotNull
     private final AvatarService avatarService;
 
-    public AvatarController(@NotNull AvatarService avatarService) {
+    public AvatarController(AvatarService avatarService) {
         this.avatarService = avatarService;
     }
 

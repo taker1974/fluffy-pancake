@@ -1,7 +1,3 @@
-// SkyPro
-// Терских Константин, kostus.online.1974@yandex.ru, 2025
-// Домашнее задание третьего курса ("Работа с кодом") Java Developer.
-
 package ru.hogwarts.school.controller.advice;
 
 import org.springframework.core.Ordered;
@@ -13,12 +9,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import ru.hogwarts.school.dto.ErrorResponse;
 
-/**
- * Обработка общих исключений.
- *
- * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.6
- */
 @ControllerAdvice
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class CommonControllerAdvice extends AbstractBaseControllerAdvice {

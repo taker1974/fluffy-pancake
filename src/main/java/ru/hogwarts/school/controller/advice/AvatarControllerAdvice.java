@@ -1,7 +1,3 @@
-// SkyPro
-// Терских Константин, kostus.online.1974@yandex.ru, 2025
-// Домашнее задание третьего курса ("Работа с кодом") Java Developer.
-
 package ru.hogwarts.school.controller.advice;
 
 import org.springframework.http.HttpStatus;
@@ -17,12 +13,6 @@ import ru.hogwarts.school.exception.avatar.FailedBuildAvatarFileNameException;
 import ru.hogwarts.school.exception.avatar.IOAvatarFileException;
 import ru.hogwarts.school.exception.avatar.NullAvatarFileException;
 
-/**
- * Обработка исключений при работе с аватарками.
- *
- * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.8
- */
 @ControllerAdvice
 public class AvatarControllerAdvice extends AbstractBaseControllerAdvice {
 

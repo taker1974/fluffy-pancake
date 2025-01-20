@@ -1,10 +1,5 @@
-// SkyPro
-// Терских Константин, kostus.online.1974@yandex.ru, 2025
-// Домашнее задание третьего курса ("Работа с кодом") Java Developer.
-
 package ru.hogwarts.school.service;
 
-import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 import ru.hogwarts.school.exception.faculty.FacultyNotFoundException;
 import ru.hogwarts.school.exception.student.NullStudentException;
@@ -17,35 +12,18 @@ import ru.hogwarts.school.repository.StudentRepository;
 
 import java.util.Collection;
 
-/**
- * Сервис для работы со студентами.
- *
- * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.7
- */
 @Service
 public class StudentService {
 
-    @NotNull
     private final StudentRepository studentRepository;
-
-    @NotNull
     private final FacultyRepository facultyRepository;
 
-    public StudentService(@NotNull StudentRepository studentRepository,
-                          @NotNull FacultyRepository facultyRepository) {
+    public StudentService(StudentRepository studentRepository,
+                          FacultyRepository facultyRepository) {
         this.studentRepository = studentRepository;
         this.facultyRepository = facultyRepository;
     }
 
-    /**
-     * Добавление студента.
-     *
-     * @param student {@link Student}
-     * @return {@link Student}
-     * @throws NullStudentException          student равен null
-     * @throws StudentAlreadyExistsException студент с таким id уже существует
-     */
     public Student addStudent(Student student) {
         if (student == null) {
             throw new NullStudentException();
@@ -56,26 +34,11 @@ public class StudentService {
         return studentRepository.save(student);
     }
 
-    /**
-     * Получение студента.
-     *
-     * @param id id студента
-     * @return {@link Student}
-     * @throws StudentNotFoundException студент с таким id не существует
-     */
     public Student getStudent(long id) {
         return studentRepository.findWithJoinFetch(id)
                 .orElseThrow(StudentNotFoundException::new);
     }
 
-    /**
-     * Обновление студента.
-     *
-     * @param student {@link Student}
-     * @return {@link Student}
-     * @throws NullStudentException     student равен null
-     * @throws StudentNotFoundException студент с таким id не существует
-     */
     public Student updateStudent(Student student) {
         if (student == null) {
             throw new NullStudentException();
@@ -86,13 +49,6 @@ public class StudentService {
         return studentRepository.save(student);
     }
 
-    /**
-     * Удаление студента.
-     *
-     * @param id id студента
-     * @return {@link Student}
-     * @throws StudentNotFoundException студент с таким id не существует
-     */
     public Student deleteStudent(long id) {
         final Student student = studentRepository.findById(id)
                 .orElseThrow(StudentNotFoundException::new);
@@ -103,9 +59,6 @@ public class StudentService {
     /**
      * Установка факультета простым способом.
      *
-     * @param studentId id студента
-     * @param facultyId id факультета
-     * @return {@link Student}
      * @throws StudentNotFoundException студент с таким id не существует
      * @throws FacultyNotFoundException факультет с таким id не существует
      */
@@ -125,8 +78,6 @@ public class StudentService {
     /**
      * Сброс факультета.
      *
-     * @param studentId id студента
-     * @return {@link Student}
      * @throws StudentNotFoundException студент с таким id не существует
      */
     public Student resetFaculty(long studentId) {
