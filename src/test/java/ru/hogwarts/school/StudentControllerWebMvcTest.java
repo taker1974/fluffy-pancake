@@ -6,16 +6,23 @@ package ru.hogwarts.school;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -55,17 +62,20 @@ import static org.mockito.Mockito.when;
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
  * @version 0.2
  */
-@ContextConfiguration(classes = {SchoolApplication.class})
-@WebMvcTest({StudentController.class, StudentService.class, StudentRepository.class})
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+        classes = SchoolApplication.class)
+@AutoConfigureMockMvc
 class StudentControllerWebMvcTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @MockBean
     private StudentRepository studentRepository;
 
-    @MockitoSpyBean
+    @SpyBean
     private StudentService studentService;
 
     @InjectMocks
@@ -82,6 +92,8 @@ class StudentControllerWebMvcTest {
             new Student(8, "Jennifer Lee", 25),
             new Student(9, "William Davis", 26),
     };
+
+    private final int wrongId = 45334;
 
     @Spy
     private Faculty faculty = new Faculty(1, "Faculty", "0x4f");
@@ -136,7 +148,7 @@ class StudentControllerWebMvcTest {
         // не найдём студента
         when(studentRepository.findById(student.getId())).thenReturn(Optional.empty());
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/student/" + 114)
+                        .get("/student/" + wrongId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(StudentNotFoundException.CODE));
@@ -277,7 +289,7 @@ class StudentControllerWebMvcTest {
         final var student = students[0];
 
         var set = new HashSet<>(List.of(student));
-        when(faculty.getStudents()).thenReturn(set);
+//        when(faculty.getStudents(faculty.getId())).thenReturn(set);
 
         when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student));
 

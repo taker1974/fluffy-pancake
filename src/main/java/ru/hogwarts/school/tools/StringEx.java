@@ -4,6 +4,8 @@
 
 package ru.hogwarts.school.tools;
 
+import java.util.Optional;
+
 /**
  * Инструменты для работы со строками.
  *
@@ -40,9 +42,10 @@ public final class StringEx {
      * @param maxLength максимальная длина строки
      * @return null || isEmpty || isBlank
      */
-    public static boolean isMeaningful(String str, int minLength, int maxLength) {
-        return !isNullOrWhitespace(str) &&
-                str.length() >= minLength &&
-                str.length() <= maxLength;
+    public static Optional<String> getMeaningful(String str, int minLength, int maxLength) {
+        if (!isNullOrWhitespace(str) && str.length() >= minLength && str.length() <= maxLength) {
+            return Optional.of(str);
+        }
+        return Optional.empty();
     }
 }

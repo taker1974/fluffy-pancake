@@ -32,8 +32,6 @@ import java.util.Collection;
 @Tag(name = "Факультеты")
 public class FacultyController {
 
-    // Согласно правилу java:S4488 здесь НЕ используется @RequestMapping.
-
     @NotNull
     private final FacultyService facultyService;
 
@@ -78,8 +76,8 @@ public class FacultyController {
     }
 
     @Operation(summary = "Получение всех студентов факультета")
-    @GetMapping(value = "/{id}/students")
-    public ResponseEntity<Collection<Student>> findStudentsByFaculty(@PathVariable long id) {
-        return ResponseEntity.ok(facultyService.getFaculty(id).getStudents());
+    @GetMapping(value = "/{facultyId}/students")
+    public ResponseEntity<Collection<Student>> findStudentsByFaculty(@PathVariable long facultyId) {
+        return ResponseEntity.ok(facultyService.getStudents(facultyId));
     }
 }

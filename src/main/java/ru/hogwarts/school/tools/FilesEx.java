@@ -32,15 +32,6 @@ public class FilesEx {
     }
 
     /**
-     * @param file {@link MultipartFile}
-     * @return file содержит имя
-     */
-    public static boolean isMeaningfulName(MultipartFile file) {
-        return !isNullOrEmpty(file) &&
-                StringEx.isMeaningful(file.getOriginalFilename(), 1, MAX_FILE_NAME_LENGTH);
-    }
-
-    /**
      * @param filePath путь к файлу в виде "resource1://resource2/.../fileName.ext"
      * @return имя файла без пути и без расширения
      */

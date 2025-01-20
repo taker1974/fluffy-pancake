@@ -21,7 +21,7 @@ import java.util.Collection;
  * Сервис для работы со студентами.
  *
  * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.5
+ * @version 0.7
  */
 @Service
 public class StudentService {
@@ -64,7 +64,7 @@ public class StudentService {
      * @throws StudentNotFoundException студент с таким id не существует
      */
     public Student getStudent(long id) {
-        return studentRepository.findById(id)
+        return studentRepository.findWithJoinFetch(id)
                 .orElseThrow(StudentNotFoundException::new);
     }
 

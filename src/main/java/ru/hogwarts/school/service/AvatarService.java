@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -198,5 +199,9 @@ public class AvatarService {
         }
 
         return Optional.of(avatar);
+    }
+
+    public Collection<Avatar> getAllAvatars() {
+        return avatarRepository.findAll();
     }
 }

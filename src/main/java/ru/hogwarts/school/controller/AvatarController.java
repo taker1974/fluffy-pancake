@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -40,8 +41,6 @@ import java.util.Optional;
 @RequestMapping(value = "/avatar")
 @Tag(name = "Аватары студентов")
 public class AvatarController {
-
-    // Согласно правилу java:S4488 здесь НЕ используется @RequestMapping.
 
     @NotNull
     private final AvatarService avatarService;
@@ -107,5 +106,11 @@ public class AvatarController {
         } catch (Exception e) {
             throw new IOAvatarFileException();
         }
+    }
+
+    @Operation(summary = "Получение всех аватаров")
+    @GetMapping
+    public Collection<Avatar> getAllAvatars() {
+        return avatarService.getAllAvatars();
     }
 }

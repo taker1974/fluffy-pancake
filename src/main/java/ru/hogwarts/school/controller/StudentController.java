@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
@@ -32,8 +31,6 @@ import java.util.Collection;
 @RequestMapping(value = "/student")
 @Tag(name = "Студенты")
 public class StudentController {
-
-    // Согласно правилу java:S4488 здесь НЕ используется @RequestMapping.
 
     @NotNull
     private final StudentService studentService;
