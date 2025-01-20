@@ -1,5 +1,6 @@
 package ru.hogwarts.school.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.hogwarts.school.exception.faculty.FacultyNotFoundException;
 import ru.hogwarts.school.exception.student.NullStudentException;
@@ -13,16 +14,11 @@ import ru.hogwarts.school.repository.StudentRepository;
 import java.util.Collection;
 
 @Service
+@RequiredArgsConstructor
 public class StudentService {
 
     private final StudentRepository studentRepository;
     private final FacultyRepository facultyRepository;
-
-    public StudentService(StudentRepository studentRepository,
-                          FacultyRepository facultyRepository) {
-        this.studentRepository = studentRepository;
-        this.facultyRepository = facultyRepository;
-    }
 
     public Student addStudent(Student student) {
         if (student == null) {

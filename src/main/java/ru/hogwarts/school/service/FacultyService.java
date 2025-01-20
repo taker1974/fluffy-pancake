@@ -1,5 +1,6 @@
 package ru.hogwarts.school.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.hogwarts.school.exception.faculty.FacultyAlreadyExistsException;
 import ru.hogwarts.school.exception.faculty.FacultyNotFoundException;
@@ -11,13 +12,10 @@ import ru.hogwarts.school.repository.FacultyRepository;
 import java.util.Collection;
 
 @Service
+@RequiredArgsConstructor
 public class FacultyService {
 
     private final FacultyRepository facultyRepository;
-
-    public FacultyService(FacultyRepository faculties) {
-        this.facultyRepository = faculties;
-    }
 
     public Faculty addFaculty(Faculty faculty) {
         if (faculty == null) {

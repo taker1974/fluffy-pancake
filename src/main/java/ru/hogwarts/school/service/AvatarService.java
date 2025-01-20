@@ -1,5 +1,6 @@
 package ru.hogwarts.school.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,7 @@ import java.util.UUID;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 @Service
+@RequiredArgsConstructor
 public class AvatarService {
 
     @Value("${avatars.path}")
@@ -48,12 +50,6 @@ public class AvatarService {
 
     private final StudentRepository studentRepository;
     private final AvatarRepository avatarRepository;
-
-    public AvatarService(StudentRepository studentRepository,
-                         AvatarRepository avatarRepository) {
-        this.studentRepository = studentRepository;
-        this.avatarRepository = avatarRepository;
-    }
 
     @Transactional
     public Avatar uploadAvatar(long studentId, MultipartFile avatarFile) {

@@ -3,6 +3,7 @@ package ru.hogwarts.school.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,13 +30,10 @@ import java.util.Optional;
 @RestController
 @RequestMapping(value = "/avatar")
 @Tag(name = "Аватары студентов")
+@RequiredArgsConstructor
 public class AvatarController {
 
     private final AvatarService avatarService;
-
-    public AvatarController(AvatarService avatarService) {
-        this.avatarService = avatarService;
-    }
 
     // Здесь post потому, что всегда создаётся новый аватар, новый ресурс на сервере.
     @Operation(summary = "Загрузка аватара студента")

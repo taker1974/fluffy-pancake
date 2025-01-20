@@ -2,6 +2,7 @@ package ru.hogwarts.school.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,35 +20,32 @@ import java.util.Collection;
 @RestController
 @RequestMapping(value = "/faculty")
 @Tag(name = "Факультеты")
+@RequiredArgsConstructor
 public class FacultyController {
 
     private final FacultyService facultyService;
 
-    public FacultyController(FacultyService facultyService) {
-        this.facultyService = facultyService;
-    }
-
     @Operation(summary = "Добавление нового факультета")
     @PostMapping
-    public ResponseEntity<Faculty> addFaculty(Faculty faculty)  {
+    public ResponseEntity<Faculty> addFaculty(Faculty faculty) {
         return ResponseEntity.ok(facultyService.addFaculty(faculty));
     }
 
     @Operation(summary = "Получение существующего факультета по id")
     @GetMapping(value = "/{id}")
-    public ResponseEntity<Faculty> getFaculty(@PathVariable long id)  {
+    public ResponseEntity<Faculty> getFaculty(@PathVariable long id) {
         return ResponseEntity.ok(facultyService.getFaculty(id));
     }
 
     @Operation(summary = "Обновление существующего факультета")
     @PutMapping
-    public ResponseEntity<Faculty> updateFaculty(Faculty faculty)  {
+    public ResponseEntity<Faculty> updateFaculty(Faculty faculty) {
         return ResponseEntity.ok(facultyService.updateFaculty(faculty));
     }
 
     @Operation(summary = "Удаление существующего факультета")
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<Faculty> deleteFaculty(@PathVariable long id)  {
+    public ResponseEntity<Faculty> deleteFaculty(@PathVariable long id) {
         return ResponseEntity.ok(facultyService.deleteFaculty(id));
     }
 
