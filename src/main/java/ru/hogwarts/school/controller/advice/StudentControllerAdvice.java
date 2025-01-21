@@ -14,6 +14,8 @@ import ru.hogwarts.school.exception.student.NullStudentException;
 import ru.hogwarts.school.exception.student.StudentAlreadyExistsException;
 import ru.hogwarts.school.exception.student.StudentNotFoundException;
 
+import java.util.Arrays;
+
 @ControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class StudentControllerAdvice extends AbstractBaseControllerAdvice {
@@ -22,7 +24,8 @@ public class StudentControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleBadStudentAgeException(BadStudentAgeException e,
                                                                       WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(BadStudentAgeException.CODE, e.getMessage()),
+                new ErrorResponse(BadStudentAgeException.CODE, e.getMessage(),
+                        Arrays.toString(e.getStackTrace())),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -30,7 +33,8 @@ public class StudentControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleBadStudentNameException(BadStudentNameException e,
                                                                        WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(BadStudentNameException.CODE, e.getMessage()),
+                new ErrorResponse(BadStudentNameException.CODE, e.getMessage(),
+                        Arrays.toString(e.getStackTrace())),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -38,7 +42,8 @@ public class StudentControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleNullStudentException(NullStudentException e,
                                                                     WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(NullStudentException.CODE, e.getMessage()),
+                new ErrorResponse(NullStudentException.CODE, e.getMessage(),
+                        Arrays.toString(e.getStackTrace())),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -46,7 +51,8 @@ public class StudentControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleStudentAlreadyExistsException(StudentAlreadyExistsException e,
                                                                              WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(StudentAlreadyExistsException.CODE, e.getMessage()),
+                new ErrorResponse(StudentAlreadyExistsException.CODE, e.getMessage(),
+                        Arrays.toString(e.getStackTrace())),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -54,7 +60,8 @@ public class StudentControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleStudentNotFoundException(StudentNotFoundException e,
                                                                         WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(StudentNotFoundException.CODE, e.getMessage()),
+                new ErrorResponse(StudentNotFoundException.CODE, e.getMessage(),
+                        Arrays.toString(e.getStackTrace())),
                 HttpStatus.BAD_REQUEST);
     }
 }

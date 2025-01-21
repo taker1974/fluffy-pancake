@@ -2,13 +2,10 @@ package ru.hogwarts.school.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.hogwarts.school.exception.faculty.FacultyNotFoundException;
 import ru.hogwarts.school.exception.student.NullStudentException;
 import ru.hogwarts.school.exception.student.StudentAlreadyExistsException;
 import ru.hogwarts.school.exception.student.StudentNotFoundException;
-import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
-import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
 
 import java.util.Collection;
@@ -18,7 +15,6 @@ import java.util.Collection;
 public class StudentService {
 
     private final StudentRepository studentRepository;
-    private final FacultyRepository facultyRepository;
 
     public Student addStudent(Student student) {
         if (student == null) {
@@ -49,25 +45,6 @@ public class StudentService {
         final Student student = studentRepository.findById(id)
                 .orElseThrow(StudentNotFoundException::new);
         studentRepository.deleteById(id);
-        return student;
-    }
-
-    /**
-     * Установка факультета простым способом.
-     *
-     * @throws StudentNotFoundException студент с таким id не существует
-     * @throws FacultyNotFoundException факультет с таким id не существует
-     */
-    public Student setFaculty(long studentId, long facultyId) {
-
-        final Student student = studentRepository.findById(studentId)
-                .orElseThrow(StudentNotFoundException::new);
-
-        final Faculty faculty = facultyRepository.findById(facultyId)
-                .orElseThrow(FacultyNotFoundException::new);
-
-        student.setFaculty(faculty);
-        studentRepository.save(student);
         return student;
     }
 

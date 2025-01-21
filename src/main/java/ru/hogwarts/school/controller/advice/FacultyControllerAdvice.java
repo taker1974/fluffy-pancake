@@ -14,6 +14,8 @@ import ru.hogwarts.school.exception.faculty.FacultyAlreadyExistsException;
 import ru.hogwarts.school.exception.faculty.FacultyNotFoundException;
 import ru.hogwarts.school.exception.faculty.NullFacultyException;
 
+import java.util.Arrays;
+
 @ControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class FacultyControllerAdvice extends AbstractBaseControllerAdvice {
@@ -22,7 +24,8 @@ public class FacultyControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleBadFacultyColorException(BadFacultyColorException e,
                                                                         WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(BadFacultyColorException.CODE, e.getMessage()),
+                new ErrorResponse(BadFacultyColorException.CODE, e.getMessage(),
+                        Arrays.toString(e.getStackTrace())),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -30,7 +33,8 @@ public class FacultyControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleBadFacultyNameException(BadFacultyNameException e,
                                                                        WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(BadFacultyNameException.CODE, e.getMessage()),
+                new ErrorResponse(BadFacultyNameException.CODE, e.getMessage(),
+                        Arrays.toString(e.getStackTrace())),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -38,7 +42,8 @@ public class FacultyControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleFacultyNotFoundException(FacultyAlreadyExistsException e,
                                                                         WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(FacultyAlreadyExistsException.CODE, e.getMessage()),
+                new ErrorResponse(FacultyAlreadyExistsException.CODE, e.getMessage(),
+                        Arrays.toString(e.getStackTrace())),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -46,7 +51,8 @@ public class FacultyControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleFacultyNotFoundException(FacultyNotFoundException e,
                                                                         WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(FacultyNotFoundException.CODE, e.getMessage()),
+                new ErrorResponse(FacultyNotFoundException.CODE, e.getMessage(),
+                        Arrays.toString(e.getStackTrace())),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -54,7 +60,8 @@ public class FacultyControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleNullFacultyException(NullFacultyException e,
                                                                     WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(NullFacultyException.CODE, e.getMessage()),
+                new ErrorResponse(NullFacultyException.CODE, e.getMessage(),
+                        Arrays.toString(e.getStackTrace())),
                 HttpStatus.BAD_REQUEST);
     }
 }

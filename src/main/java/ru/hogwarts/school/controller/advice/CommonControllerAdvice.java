@@ -21,7 +21,7 @@ public class CommonControllerAdvice extends AbstractBaseControllerAdvice {
     @Order(Ordered.LOWEST_PRECEDENCE)
     public ResponseEntity<ErrorResponse> handleException(Exception e, WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(E_CODE, SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+                new ErrorResponse(E_CODE, SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     public static final int RTE_CODE = 427;
@@ -30,7 +30,7 @@ public class CommonControllerAdvice extends AbstractBaseControllerAdvice {
     @Order(Ordered.LOWEST_PRECEDENCE - 1)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException e, WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(RTE_CODE, SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+                new ErrorResponse(RTE_CODE, SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     public static final int NPE_CODE = 467;
@@ -39,7 +39,7 @@ public class CommonControllerAdvice extends AbstractBaseControllerAdvice {
     @Order(Ordered.LOWEST_PRECEDENCE - 2)
     public ResponseEntity<ErrorResponse> handleNpe(NullPointerException e) {
         return new ResponseEntity<>(
-                new ErrorResponse(NPE_CODE, getCommonMessage(e)), HttpStatus.INTERNAL_SERVER_ERROR);
+                new ErrorResponse(NPE_CODE, getCommonMessage(e), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     public static final int IAE_CODE = 881;
@@ -48,6 +48,6 @@ public class CommonControllerAdvice extends AbstractBaseControllerAdvice {
     @Order(Ordered.LOWEST_PRECEDENCE - 3)
     public ResponseEntity<ErrorResponse> handleIAE(IllegalArgumentException e) {
         return new ResponseEntity<>(
-                new ErrorResponse(IAE_CODE, getCommonMessage(e)), HttpStatus.BAD_REQUEST);
+                new ErrorResponse(IAE_CODE, getCommonMessage(e), e.getMessage()), HttpStatus.BAD_REQUEST);
     }
 }

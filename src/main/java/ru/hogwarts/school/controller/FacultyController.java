@@ -64,6 +64,6 @@ public class FacultyController {
     @Operation(summary = "Получение всех студентов факультета")
     @GetMapping(value = "/{facultyId}/students")
     public ResponseEntity<Collection<Student>> findStudentsByFaculty(@PathVariable long facultyId) {
-        return ResponseEntity.ok(facultyService.getStudents(facultyId));
+        return ResponseEntity.ok(facultyService.getFaculty(facultyId).getStudents());
     }
 }

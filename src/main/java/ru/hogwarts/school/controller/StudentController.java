@@ -73,12 +73,6 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getStudent(id).getFaculty());
     }
 
-    @Operation(summary = "Установка факультета facultyId для студента studentId")
-    @PutMapping(value = "/{studentId}/faculty/{facultyId}")
-    public ResponseEntity<Student> setFaculty(@PathVariable long studentId, @PathVariable long facultyId) {
-        return ResponseEntity.ok(studentService.setFaculty(studentId, facultyId));
-    }
-
     @Operation(summary = "Сброс факультета для студента studentId")
     @DeleteMapping(value = "/{studentId}/faculty")
     public ResponseEntity<Student> resetFaculty(@PathVariable long studentId) {

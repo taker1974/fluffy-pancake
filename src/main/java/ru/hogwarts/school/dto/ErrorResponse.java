@@ -1,4 +1,6 @@
 package ru.hogwarts.school.dto;
 
-public record ErrorResponse(int code, String message) {
+import jakarta.annotation.Nullable;
+
+public record ErrorResponse(int code, String message, @Nullable String details) {
 }

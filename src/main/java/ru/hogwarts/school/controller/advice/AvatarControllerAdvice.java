@@ -20,7 +20,7 @@ public class AvatarControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleBadAvatarDataException(BadAvatarDataException e,
                                                                       WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(BadAvatarDataException.CODE, e.getMessage()),
+                new ErrorResponse(BadAvatarDataException.CODE, e.getMessage(), e.getMessage()),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -29,7 +29,7 @@ public class AvatarControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleBadAvatarFileNameException(BadAvatarFileNameException e,
                                                                           WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(BadAvatarFileNameException.CODE, e.getMessage()),
+                new ErrorResponse(BadAvatarFileNameException.CODE, e.getMessage(), e.getMessage()),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -37,7 +37,7 @@ public class AvatarControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleBadAvatarSizeException(BadAvatarSizeException e,
                                                                       WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(BadAvatarSizeException.CODE, e.getMessage()),
+                new ErrorResponse(BadAvatarSizeException.CODE, e.getMessage(), e.getMessage()),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -45,7 +45,7 @@ public class AvatarControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleFailedBuildAvatarFileNameException(FailedBuildAvatarFileNameException e,
                                                                                   WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(FailedBuildAvatarFileNameException.CODE, e.getMessage()),
+                new ErrorResponse(FailedBuildAvatarFileNameException.CODE, e.getMessage(), e.getMessage()),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -53,7 +53,7 @@ public class AvatarControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleIOAvatarFileException(IOAvatarFileException e,
                                                                      WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(IOAvatarFileException.CODE, e.getMessage()),
+                new ErrorResponse(IOAvatarFileException.CODE, e.getMessage(), e.getMessage()),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -61,7 +61,7 @@ public class AvatarControllerAdvice extends AbstractBaseControllerAdvice {
     public ResponseEntity<ErrorResponse> handleNullAvatarFileException(NullAvatarFileException e,
                                                                        WebRequest request) {
         return new ResponseEntity<>(
-                new ErrorResponse(NullAvatarFileException.CODE, e.getMessage()),
+                new ErrorResponse(NullAvatarFileException.CODE, e.getMessage(), e.getMessage()),
                 HttpStatus.BAD_REQUEST);
     }
 }
