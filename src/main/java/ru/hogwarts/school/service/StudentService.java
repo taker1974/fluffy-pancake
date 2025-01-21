@@ -2,6 +2,7 @@ package ru.hogwarts.school.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.hogwarts.school.interceptor.annotation.CheckStudent;
 import ru.hogwarts.school.exception.student.NullStudentException;
 import ru.hogwarts.school.exception.student.StudentAlreadyExistsException;
 import ru.hogwarts.school.exception.student.StudentNotFoundException;
@@ -31,6 +32,7 @@ public class StudentService {
                 .orElseThrow(StudentNotFoundException::new);
     }
 
+    @CheckStudent
     public Student updateStudent(Student student) {
         if (student == null) {
             throw new NullStudentException();

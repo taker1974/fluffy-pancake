@@ -15,37 +15,50 @@
     <description>Simple CRM</description>
     <url/>
 
-	<licenses>
+    <licenses>
         <license/>
     </licenses>
-
-	<developers>
+    <developers>
         <developer/>
     </developers>
-
-	<scm>
+    <scm>
         <connection/>
         <developerConnection/>
         <tag/>
         <url/>
     </scm>
-
-	<properties>
+    <properties>
         <java.version>23</java.version>
     </properties>
 
-	<dependencies>
+    <dependencies>
 
-		<dependency>
+        <!--
+            Базовые пакеты
+        -->
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>3.4.1</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.4</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
@@ -56,32 +69,16 @@
             <scope>provided</scope>
         </dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-			<version>3.4.1</version>
-		</dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.24.3</version>
+        </dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>42.7.4</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.18.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
-		</dependency>
+        <!--
+            Тестирование
+        -->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -89,9 +86,31 @@
             <scope>test</scope>
         </dependency>
 
-		<!--
-			https://dev.to/olymahmud/integrating-openapi-documentation-and-swagger-ui-in-spring-boot-38p6
-		-->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Mockito extension -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Apache Commons IO (файлы, фильтры, потоки и т.д.)-->
+        <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.18.0</version>
+        </dependency>
+
+        <!--
+            По OpenAPI и Swagger [UI]  >= v3 в Spring Boot >= 3.4.0:
+            https://dev.to/olymahmud/integrating-openapi-documentation-and-swagger-ui-in-spring-boot-38p6
+        -->
 
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -106,17 +125,56 @@
             <version>2.2.28</version>
         </dependency>
 
-        <!-- Mockito extension -->
+        <!--
+            AspectJ
+            https://github.com/kasramp/spring-boot-aspectj/blob/master/src/main/java/com/madadipouya/sample/aspectj/interceptor/LoggingInterceptor.java
+        -->
+
+        <!-- https://mvnrepository.com/artifact/org.springframework/spring-aspects -->
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+            <version>6.2.2</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.aspectj/aspectjweaver -->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.9.22.1</version>
+            <!--            <scope>runtime</scope>-->
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.aspectj/aspectjrt -->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>1.9.22.1</version>
+<!--            <scope>runtime</scope>-->
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.assertj/assertj-core -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.27.3</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/dev.aspectj/aspectj-maven-plugin -->
+        <dependency>
+            <groupId>dev.aspectj</groupId>
+            <artifactId>aspectj-maven-plugin</artifactId>
+            <version>1.14</version>
+        </dependency>
+
+        <!-- Далее см. <build> ниже-->
 
     </dependencies>
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -130,6 +188,7 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -140,6 +199,43 @@
                     </excludes>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <!-- https://mvnrepository.com/artifact/dev.aspectj/aspectj-maven-plugin/1.14 -->
+                <groupId>dev.aspectj</groupId>
+                <artifactId>aspectj-maven-plugin</artifactId>
+                <version>1.14</version>
+
+<!--                <groupId>org.codehaus.mojo</groupId>-->
+<!--                <artifactId>aspectj-maven-plugin</artifactId>-->
+<!--                <version>1.15.0</version>-->
+
+                <configuration>
+                    <complianceLevel>17</complianceLevel>
+                    <source>17</source>
+                    <target>17</target>
+                    <showWeaveInfo>true</showWeaveInfo>
+                    <verbose>true</verbose>
+                    <Xlint>ignore</Xlint>
+                    <encoding>UTF-8</encoding>
+                    <aspectLibraries>
+                        <aspectLibrary>
+                            <groupId>org.springframework</groupId>
+                            <artifactId>spring-aspects</artifactId>
+                        </aspectLibrary>
+                    </aspectLibraries>
+                    <showWeaveInfo>true</showWeaveInfo>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>test-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 

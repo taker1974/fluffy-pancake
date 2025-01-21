@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.hogwarts.school.interceptor.annotation.CheckStudent;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.StudentService;
@@ -27,6 +28,7 @@ public class StudentController {
 
     @Operation(summary = "Добавление нового студента")
     @PostMapping
+    @CheckStudent
     public ResponseEntity<Student> addStudent(Student student) {
         return ResponseEntity.ok(studentService.addStudent(student));
     }
@@ -45,6 +47,7 @@ public class StudentController {
 
     @Operation(summary = "Обновление существующего студента")
     @PutMapping
+    @CheckStudent
     public ResponseEntity<Student> updateStudent(Student student) {
         return ResponseEntity.ok(studentService.updateStudent(student));
     }
