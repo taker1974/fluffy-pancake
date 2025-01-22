@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.hogwarts.school.exception.student.NullStudentException;
 import ru.hogwarts.school.exception.student.StudentAlreadyExistsException;
 import ru.hogwarts.school.exception.student.StudentNotFoundException;
+import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repository.StudentRepository;
 
@@ -72,5 +73,13 @@ public class StudentService {
 
     public Collection<Student> findStudentsByAgeBetween(int fromAge, int toAge) {
         return studentRepository.findByAgeBetween(fromAge, toAge);
+    }
+
+    public Student setFaculty(long studentId, Faculty faculty) {
+        final Student student = studentRepository.findById(studentId)
+                .orElseThrow(StudentNotFoundException::new);
+
+        student.setFaculty(faculty);
+        return studentRepository.save(student);
     }
 }

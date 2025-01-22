@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
+import ru.hogwarts.school.service.FacultyService;
 import ru.hogwarts.school.service.StudentService;
 
 import java.util.Collection;
@@ -24,6 +25,7 @@ import java.util.Collection;
 public class StudentController {
 
     private final StudentService studentService;
+    private final FacultyService facultyService;
 
     @Operation(summary = "Добавление нового студента")
     @PostMapping
@@ -65,6 +67,12 @@ public class StudentController {
     @GetMapping(value = "/filter/age/between")
     public ResponseEntity<Collection<Student>> findStudentsByAgeBetween(int fromAge, int toAge) {
         return ResponseEntity.ok(studentService.findStudentsByAgeBetween(fromAge, toAge));
+    }
+
+    @Operation(summary = "Установка факультета студента по id студента и id факультета")
+    @PutMapping(value = "/{studentId}/faculty/{facultyId}")
+    public ResponseEntity<Student> setFaculty(@PathVariable long studentId, @PathVariable long facultyId) {
+        return ResponseEntity.ok(studentService.setFaculty(studentId, facultyService.getFaculty(facultyId)));
     }
 
     @Operation(summary = "Получение факультета студента по id студента")
