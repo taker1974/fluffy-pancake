@@ -1,11 +1,11 @@
 package ru.hogwarts.school;
 
+import lombok.RequiredArgsConstructor;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -17,6 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.hogwarts.school.controller.StudentController;
+import ru.hogwarts.school.controller.advice.CommonControllerAdvice;
+import ru.hogwarts.school.controller.advice.StudentControllerAdvice;
 import ru.hogwarts.school.exception.student.StudentAlreadyExistsException;
 import ru.hogwarts.school.exception.student.StudentNotFoundException;
 import ru.hogwarts.school.model.Faculty;
@@ -26,9 +28,10 @@ import ru.hogwarts.school.service.StudentService;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
 /**
  * Из условий ДЗ<br>
@@ -44,8 +47,10 @@ import static org.mockito.BDDMockito.given;
  * - для тестирования использовался WebMvcTest;<br>
  * - для каждого эндпоинта контроллера StudentController создан как минимум один тест.<br>
  */
-@ActiveProfiles("test")
+@RequiredArgsConstructor
+@ActiveProfiles("test-h2")
 @ContextConfiguration(classes = {StudentController.class,
+        StudentControllerAdvice.class, CommonControllerAdvice.class,
         StudentService.class, StudentRepository.class,
         Student.class, Faculty.class})
 @WebMvcTest
@@ -63,28 +68,13 @@ class StudentControllerWebMvcTest {
     @InjectMocks
     StudentController studentController;
 
-    final Student[] students;
+    final Student[] students = new Student[]{
+            new Student(0, "John Doe", 18, null),
+            new Student(1, "Jane Doe", 19, null),
+            new Student(2, "John Smith", 20, null)
+    };
+
     final int wrongId = 45334;
-
-    StudentControllerWebMvcTest() {
-        students = new Student[3];
-
-        students[0] = new Student();
-        students[1] = new Student();
-        students[2] = new Student();
-
-        students[0].setId(1);
-        students[1].setId(2);
-        students[2].setId(3);
-
-        students[0].setName("John Doe");
-        students[1].setName("Jane Doe");
-        students[2].setName("Bob Jones");
-
-        students[0].setAge(18);
-        students[1].setAge(19);
-        students[2].setAge(20);
-    }
 
     String buildJson(Student student) {
         try {
@@ -101,15 +91,13 @@ class StudentControllerWebMvcTest {
     @DisplayName("Добавление студента: студент добавляется успешно")
     void whenAddStudent_thenReturnsExpectedStudent() throws Exception {
 
-        final var student = students[0];
+        final Student student = students[0];
         final String studentJson = buildJson(students[0]);
 
-        given(studentRepository.save(any(Student.class))).willReturn(student);
+        // Убедимся, что новый студент добавляется успешно.
+        when(studentRepository.findById(anyLong())).thenReturn(Optional.empty()); // студент не существует
+        when(studentRepository.save(any(Student.class))).thenReturn(student);
 
-        // Добавим нового студента.
-        given(studentRepository.findById(anyLong())).willReturn(Optional.empty());
-
-        // Убедимся, что студент добавляется успешно.
         mvc.perform(MockMvcRequestBuilders
                         .post("/student")
                         .content(studentJson)
@@ -120,27 +108,28 @@ class StudentControllerWebMvcTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(student.getName()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.age").value(student.getAge()));
 
-        // Попытаемся добавить существующего студента.
-        given(studentRepository.findById(anyLong())).willReturn(Optional.of(student));
+        // Попытаемся добавить существующего студента и
+        // убедимся, что студент не добавляется.
+        when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student)); // студент уже существует
 
-        // Убедимся, что студент не добавляется.
         mvc.perform(MockMvcRequestBuilders
                         .post("/student")
                         .content(studentJson)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(StudentAlreadyExistsException.CODE));
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .isInstanceOf(StudentAlreadyExistsException.class));
     }
 
     @Test
     @DisplayName("Получение студента: студент возвращается успешно")
     void whenGetStudent_thenReturnsExpectedStudent() throws Exception {
 
-        final var student = students[0];
+        final Student student = students[0];
 
         // Найдём студента.
-        given(studentRepository.findById(student.getId())).willReturn(Optional.of(student));
+        when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student)); // студент есть
 
         mvc.perform(MockMvcRequestBuilders
                         .get("/student/" + student.getId())
@@ -151,13 +140,13 @@ class StudentControllerWebMvcTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.age").value(student.getAge()));
 
         // Не найдём студента
-        given(studentRepository.findById(student.getId())).willReturn(Optional.empty());
-
+        when(studentRepository.findById(anyLong())).thenReturn(Optional.empty());
         mvc.perform(MockMvcRequestBuilders
                         .get("/student/" + wrongId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(StudentNotFoundException.CODE));
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .isInstanceOf(StudentNotFoundException.class));
     }
 
 //    @Test

@@ -27,7 +27,7 @@ public class StudentService {
     }
 
     public Student getStudent(long id) {
-        return studentRepository.findWithJoinFetch(id)
+        return studentRepository.findById(id)
                 .orElseThrow(StudentNotFoundException::new);
     }
 
