@@ -15,19 +15,23 @@ public class CheckStudentInterceptor {
     public static final int MIN_AGE = 6;
 
     @Before(value = "@annotation(CheckStudent)")
-    public void checkStudent(ProceedingJoinPoint joinPoint)
-            throws Throwable {
+    public void checkStudent(ProceedingJoinPoint joinPoint) throws Throwable {
 
         Object[] args = joinPoint.getArgs();
-        if (args.length == 1 && args[0] instanceof Student student) {
-
-            final String name = student.getName();
-            if (name == null || name.isEmpty() || name.length() > MAX_NAME_LENGTH) {
-                throw new IllegalArgumentException();
+        for (Object arg : args){
+            if (arg == null) {
+                continue;
             }
 
-            if (student.getAge() < MIN_AGE) {
-                throw new IllegalArgumentException();
+            if (arg instanceof Student student) {
+                final String name = student.getName();
+                if (name == null || name.isEmpty() || name.length() > MAX_NAME_LENGTH) {
+                    throw new IllegalArgumentException();
+                }
+
+                if (student.getAge() < MIN_AGE) {
+                    throw new IllegalArgumentException();
+                }
             }
         }
 
