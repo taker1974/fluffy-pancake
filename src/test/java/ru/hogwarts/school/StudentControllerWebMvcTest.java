@@ -19,12 +19,16 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.hogwarts.school.controller.StudentController;
 import ru.hogwarts.school.controller.advice.CommonControllerAdvice;
+import ru.hogwarts.school.controller.advice.FacultyControllerAdvice;
 import ru.hogwarts.school.controller.advice.StudentControllerAdvice;
+import ru.hogwarts.school.exception.faculty.FacultyNotFoundException;
 import ru.hogwarts.school.exception.student.StudentAlreadyExistsException;
 import ru.hogwarts.school.exception.student.StudentNotFoundException;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
+import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
+import ru.hogwarts.school.service.FacultyService;
 import ru.hogwarts.school.service.StudentService;
 
 import java.util.Arrays;
@@ -65,8 +69,9 @@ Filter, WebMvcConfigurer и HandlerMethodArgumentResolver bean-компонен�
 @RequiredArgsConstructor
 @ActiveProfiles("test-h2")
 @ContextConfiguration(classes = {StudentController.class,
-        StudentControllerAdvice.class, CommonControllerAdvice.class,
-        StudentService.class, StudentRepository.class,
+        CommonControllerAdvice.class, StudentControllerAdvice.class, FacultyControllerAdvice.class,
+        StudentService.class, FacultyService.class,
+        StudentRepository.class, FacultyRepository.class,
         Student.class, Faculty.class})
 @WebMvcTest
 class StudentControllerWebMvcTest {
@@ -77,16 +82,22 @@ class StudentControllerWebMvcTest {
     @MockitoBean
     StudentRepository studentRepository;
 
+    @MockitoBean
+    FacultyRepository facultyRepository;
+
     @MockitoSpyBean
     StudentService studentService;
+
+    @MockitoSpyBean
+    FacultyService facultyService;
 
     @InjectMocks
     StudentController studentController;
 
     final Student[] students = new Student[]{
-            new Student(0, "John Doe", 18, null),
-            new Student(1, "Jane Doe", 19, null),
-            new Student(2, "John Smith", 20, null)
+            new Student(700, "John Doe", 18, null),
+            new Student(701, "Jane Doe", 19, null),
+            new Student(702, "John Smith", 20, null)
     };
 
     final long wrongId = 45334L;
@@ -103,7 +114,7 @@ class StudentControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("Добавление студента -> студент добавляется")
+    @DisplayName("Добавление студента -> студент добавлен")
     void whenAddStudent_thenReturnsExpectedStudent() throws Exception {
 
         final Student student = students[0];
@@ -138,7 +149,7 @@ class StudentControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("Получение студента -> студент возвращается")
+    @DisplayName("Получение студента -> студент получен")
     void whenGetStudent_thenReturnsExpectedStudent() throws Exception {
 
         final Student student = students[0];
@@ -165,7 +176,7 @@ class StudentControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("Обновление студента -> студент обновляется")
+    @DisplayName("Обновление студента -> обновлённый студент получен")
     void whenUpdateStudent_thenReturnsUpdatedStudent() throws Exception {
 
         final Student student = students[0];
@@ -204,7 +215,7 @@ class StudentControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("Удаление студента -> студент удаляется")
+    @DisplayName("Удаление студента -> удалённый студент получен в последний раз")
     void whenDeleteStudent_thenReturnsDeletedStudent() throws Exception {
 
         final Student student = students[0];
@@ -232,7 +243,7 @@ class StudentControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("Получение всех студентов -> все студенты получены")
+    @DisplayName("Получение всех студентов -> полный список студентов получен")
     void whenGetAllStudents_thenReturnsAllStudents() throws Exception {
 
         // Получим объекты всех студентов.
@@ -255,7 +266,7 @@ class StudentControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("Поиск студентов по точному возрасту -> студенты найдены")
+    @DisplayName("Поиск студентов по точному возрасту -> список студентов получен")
     void whenFindStudentsByAge_thenReturnsStudentsOfAge() throws Exception {
 
         // Получим список всех студентов искомого возраста.
@@ -279,7 +290,7 @@ class StudentControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("Поиск студентов по диапазону возраста -> студенты найдены")
+    @DisplayName("Поиск студентов по диапазону возраста -> список студентов получен")
     void whenFindStudentsByAgeBetween_thenReturnsStudentsOfAgeRange() throws Exception {
 
         // Получим список студентов по диапазону возраста.
@@ -303,7 +314,7 @@ class StudentControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("Получение факультета -> факультет")
+    @DisplayName("Получение факультета -> факультет получен")
     void whenGetFaculty_thenReturnsFaculty() throws Exception {
 
         final Student student = students[0];
@@ -329,7 +340,7 @@ class StudentControllerWebMvcTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").doesNotExist());
 
         // Получим ошибку.
-        when(studentService.getStudent(anyLong())).thenReturn(null);
+        when(studentRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         mvc.perform(MockMvcRequestBuilders
                         .request(HttpMethod.GET, String.format("/student/%d/faculty", wrongId))
@@ -337,5 +348,41 @@ class StudentControllerWebMvcTest {
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(result -> assertThat(result.getResolvedException())
                         .isInstanceOf(StudentNotFoundException.class));
+    }
+
+    @Test
+    @DisplayName("Установка факультета -> студент с установленным факультетом получен")
+    void whenSetFaculty_thenReturnsStudent() throws Exception {
+
+        final Student student = students[0];
+        student.setFaculty(null);
+        final Faculty faculty = new Faculty(900, "Факультет 1", "Вечно синие", null);
+
+        // Установим факультет по id.
+        when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student));
+        when(facultyRepository.findById(anyLong())).thenReturn(Optional.of(faculty));
+
+        // почему в этом случае я не вижу $.id и $.name?
+        // какой метод лучше применять, если я меняю объект частично
+        // через запрос по адресу типа /student/{studentId}/faculty/{facultyId}?
+
+        mvc.perform(MockMvcRequestBuilders
+                        .patch(String.format("/student/%d/faculty/%d", student.getId(), faculty.getId()))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+//                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(student.getId()))
+//                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(student.getName()))
+//                .andExpect(MockMvcResultMatchers.jsonPath("$.faculty.id").value(faculty.getId()))
+//                .andExpect(MockMvcResultMatchers.jsonPath("$.faculty.name").value(faculty.getName()));
+
+        // Получим ошибку.
+        when(facultyRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        mvc.perform(MockMvcRequestBuilders
+                        .patch(String.format("/student/%d/faculty/%d", student.getId(), faculty.getId())) // не важно
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .isInstanceOf(FacultyNotFoundException.class));
     }
 }

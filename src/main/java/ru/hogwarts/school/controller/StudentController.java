@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -70,7 +71,7 @@ public class StudentController {
     }
 
     @Operation(summary = "Установка факультета студента по id студента и id факультета")
-    @PutMapping(value = "/{studentId}/faculty/{facultyId}")
+    @PatchMapping(value = "/{studentId}/faculty/{facultyId}")
     public ResponseEntity<Student> setFaculty(@PathVariable long studentId, @PathVariable long facultyId) {
         return ResponseEntity.ok(studentService.setFaculty(studentId, facultyService.getFaculty(facultyId)));
     }
@@ -82,7 +83,7 @@ public class StudentController {
     }
 
     @Operation(summary = "Сброс факультета для студента studentId")
-    @DeleteMapping(value = "/{studentId}/faculty")
+    @PatchMapping(value = "/{studentId}/faculty")
     public ResponseEntity<Student> resetFaculty(@PathVariable long studentId) {
         return ResponseEntity.ok(studentService.resetFaculty(studentId));
     }

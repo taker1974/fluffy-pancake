@@ -1,6 +1,7 @@
 package ru.hogwarts.school.service;
 
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -155,6 +156,7 @@ public class AvatarService {
         return Optional.of(avatar);
     }
 
+    @Transactional
     public Collection<Avatar> getAllAvatars() {
         return avatarRepository.findAll();
     }
