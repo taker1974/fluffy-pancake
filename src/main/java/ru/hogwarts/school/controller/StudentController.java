@@ -31,7 +31,7 @@ public class StudentController {
 
     @Operation(summary = "Добавление нового студента")
     @PostMapping
-    public ResponseEntity<Student> addStudent(Student student) {
+    public ResponseEntity<Student> addStudent(@RequestBody Student student) {
         return ResponseEntity.ok(studentService.addStudent(student));
     }
 
@@ -43,7 +43,7 @@ public class StudentController {
 
     @Operation(summary = "Обновление существующего студента")
     @PutMapping
-    public ResponseEntity<Student> updateStudent(Student student) {
+    public ResponseEntity<Student> updateStudent(@RequestBody Student student) {
         return ResponseEntity.ok(studentService.updateStudent(student));
     }
 

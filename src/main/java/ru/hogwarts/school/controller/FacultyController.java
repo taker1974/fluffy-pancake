@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.hogwarts.school.model.Faculty;
@@ -27,7 +28,7 @@ public class FacultyController {
 
     @Operation(summary = "Добавление нового факультета")
     @PostMapping
-    public ResponseEntity<Faculty> addFaculty(Faculty faculty) {
+    public ResponseEntity<Faculty> addFaculty(@RequestBody Faculty faculty) {
         return ResponseEntity.ok(facultyService.addFaculty(faculty));
     }
 
@@ -39,7 +40,7 @@ public class FacultyController {
 
     @Operation(summary = "Обновление существующего факультета")
     @PutMapping
-    public ResponseEntity<Faculty> updateFaculty(Faculty faculty) {
+    public ResponseEntity<Faculty> updateFaculty(@RequestBody Faculty faculty) {
         return ResponseEntity.ok(facultyService.updateFaculty(faculty));
     }
 
