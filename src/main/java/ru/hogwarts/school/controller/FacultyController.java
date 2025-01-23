@@ -55,6 +55,12 @@ public class FacultyController {
         return ResponseEntity.ok(facultyService.findFacultiesByColor(color));
     }
 
+    @Operation(summary = "Поиск факультетов по названию или по \"цвету\" без учёта регистра")
+    @GetMapping(value = "/filter")
+    public ResponseEntity<Collection<Faculty>> findFacultiesByNameOrColor(String name, String color) {
+        return ResponseEntity.ok(facultyService.findFacultiesByNameOrColorIgnoreCase(name, color));
+    }
+
     @Operation(summary = "Получение всех факультетов")
     @GetMapping
     public ResponseEntity<Collection<Faculty>> getAllFaculties() {

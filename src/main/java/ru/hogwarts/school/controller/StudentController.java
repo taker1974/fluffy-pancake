@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.hogwarts.school.model.Faculty;
@@ -40,12 +41,6 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getStudent(id));
     }
 
-    @Operation(summary = "Получение всех студентов")
-    @GetMapping
-    public ResponseEntity<Collection<Student>> getAllStudents() {
-        return ResponseEntity.ok(studentService.getAllStudents());
-    }
-
     @Operation(summary = "Обновление существующего студента")
     @PutMapping
     public ResponseEntity<Student> updateStudent(Student student) {
@@ -56,18 +51,6 @@ public class StudentController {
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Student> deleteStudent(@PathVariable long id) {
         return ResponseEntity.ok(studentService.deleteStudent(id));
-    }
-
-    @Operation(summary = "Поиск студентов по точному совпадению возраста")
-    @GetMapping(value = "/filter/age/{age}")
-    public ResponseEntity<Collection<Student>> findStudentsByAge(@PathVariable int age) {
-        return ResponseEntity.ok(studentService.findStudentsByAge(age));
-    }
-
-    @Operation(summary = "Поиск студентов по диапазону возраста")
-    @GetMapping(value = "/filter/age/between")
-    public ResponseEntity<Collection<Student>> findStudentsByAgeBetween(int fromAge, int toAge) {
-        return ResponseEntity.ok(studentService.findStudentsByAgeBetween(fromAge, toAge));
     }
 
     @Operation(summary = "Установка факультета студента по id студента и id факультета")
@@ -83,8 +66,26 @@ public class StudentController {
     }
 
     @Operation(summary = "Сброс факультета для студента studentId")
-    @PatchMapping(value = "/{studentId}/faculty")
+    @PatchMapping(value = "/{studentId}/faculty/reset")
     public ResponseEntity<Student> resetFaculty(@PathVariable long studentId) {
         return ResponseEntity.ok(studentService.resetFaculty(studentId));
+    }
+
+    @Operation(summary = "Получение всех студентов")
+    @GetMapping
+    public ResponseEntity<Collection<Student>> getAllStudents() {
+        return ResponseEntity.ok(studentService.getAllStudents());
+    }
+
+    @Operation(summary = "Поиск студентов по точному совпадению возраста")
+    @GetMapping(value = "/filter/age/{age}")
+    public ResponseEntity<Collection<Student>> findStudentsByAge(@PathVariable int age) {
+        return ResponseEntity.ok(studentService.findStudentsByAge(age));
+    }
+
+    @Operation(summary = "Поиск студентов по диапазону возраста")
+    @GetMapping(value = "/filter/age/between")
+    public ResponseEntity<Collection<Student>> findStudentsByAgeBetween(int fromAge, int toAge) {
+        return ResponseEntity.ok(studentService.findStudentsByAgeBetween(fromAge, toAge));
     }
 }

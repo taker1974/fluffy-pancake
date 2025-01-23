@@ -49,11 +49,14 @@ public class StudentService {
         return student;
     }
 
-    /**
-     * Сброс факультета.
-     *
-     * @throws StudentNotFoundException студент с таким id не существует
-     */
+    public Student setFaculty(long studentId, Faculty faculty) {
+        final Student student = studentRepository.findById(studentId)
+                .orElseThrow(StudentNotFoundException::new);
+
+        student.setFaculty(faculty);
+        return studentRepository.save(student);
+    }
+
     public Student resetFaculty(long studentId) {
         final Student student = studentRepository.findById(studentId)
                 .orElseThrow(StudentNotFoundException::new);
@@ -73,13 +76,5 @@ public class StudentService {
 
     public Collection<Student> findStudentsByAgeBetween(int fromAge, int toAge) {
         return studentRepository.findByAgeBetween(fromAge, toAge);
-    }
-
-    public Student setFaculty(long studentId, Faculty faculty) {
-        final Student student = studentRepository.findById(studentId)
-                .orElseThrow(StudentNotFoundException::new);
-
-        student.setFaculty(faculty);
-        return studentRepository.save(student);
     }
 }
