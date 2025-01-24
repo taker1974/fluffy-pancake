@@ -77,7 +77,7 @@ Filter, WebMvcConfigurer и HandlerMethodArgumentResolver bean-компонен�
         StudentRepository.class, FacultyRepository.class,
         Student.class, Faculty.class})
 @WebMvcTest
-class StudentControllerWebMvcTest {
+class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
 
     @Autowired
     MockMvc mvc;
@@ -96,25 +96,6 @@ class StudentControllerWebMvcTest {
 
     @InjectMocks
     StudentController studentController;
-
-    final Student[] students = new Student[]{
-            new Student(700, "John Doe", 18, null),
-            new Student(701, "Jane Doe", 19, null),
-            new Student(702, "John Smith", 20, null)
-    };
-
-    final long wrongId = 45334L;
-
-    String buildJson(Student student) {
-        try {
-            return new JSONObject()
-                    .put("id", student.getId())
-                    .put("name", student.getName())
-                    .put("age", student.getAge()).toString();
-        } catch (JSONException e) {
-            return "";
-        }
-    }
 
     @Test
     @DisplayName("Добавление студента -> студент добавлен")
@@ -426,8 +407,6 @@ class StudentControllerWebMvcTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(0));
     }
 
-    // Реальное приложение отвечает на этот запрос валидным JSON для Student.
-    // В ответе mock нет ничего, кроме статуса.
     private void handleResult(MvcResult result) {
         try {
             final var response = result.getResponse();

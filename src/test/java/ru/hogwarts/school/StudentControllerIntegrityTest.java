@@ -1,8 +1,6 @@
 package ru.hogwarts.school;
 
 import org.assertj.core.api.Assertions;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,7 +11,6 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MvcResult;
@@ -28,57 +25,36 @@ import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test-h2")
-class StudentControllerIntegrityTest {
+class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
 
     private final StudentRepository studentRepository;
     private final FacultyRepository facultyRepository;
     private final StudentController studentController;
     private final TestRestTemplate restTemplate;
 
-    private final String baseUrl;
+    private final String studentApiUrl;
+    private final String facultyApiUrl;
 
     StudentControllerIntegrityTest(@LocalServerPort int port,
                                    @Autowired StudentRepository studentRepository,
                                    @Autowired FacultyRepository facultyRepository,
                                    @Autowired StudentController studentController,
                                    @Autowired TestRestTemplate restTemplate) {
-        baseUrl = "http://localhost:" + port + "/school/student";
+
+        studentApiUrl = "http://localhost:" + port + "/school/student";
+        facultyApiUrl = "http://localhost:" + port + "/school/faculty";
 
         this.studentRepository = studentRepository;
         this.facultyRepository = facultyRepository;
 
         this.studentController = studentController;
         this.restTemplate = restTemplate;
-    }
-
-    private final Student[] students = new Student[]{
-            new Student(0, "John Doe", 18, null),
-            new Student(0, "Jane Doe", 19, null),
-            new Student(0, "John Smith", 20, null)
-    };
-
-    final long wrongId = 45334L;
-
-    String buildJson(Student student) {
-        try {
-            return new JSONObject()
-                    .put("id", student.getId())
-                    .put("name", student.getName())
-                    .put("age", student.getAge()).toString();
-        } catch (JSONException e) {
-            return "";
-        }
     }
 
     @AfterEach
@@ -90,7 +66,8 @@ class StudentControllerIntegrityTest {
     @Test
     @DisplayName("Валидация контекста")
     void contextLoads() {
-        Assertions.assertThat(baseUrl).isNotBlank();
+        Assertions.assertThat(studentApiUrl).isNotBlank();
+        Assertions.assertThat(facultyApiUrl).isNotBlank();
         Assertions.assertThat(studentController).isNotNull();
     }
 
@@ -99,22 +76,18 @@ class StudentControllerIntegrityTest {
     void whenAddStudent_thenReturnsExpectedStudent() {
 
         final Student student = students[0];
-        final var entity = new HttpEntity<>(student);
+        ResponseEntity<Student> addResponse = addNew(restTemplate,
+                studentApiUrl, student);
 
-        // Добавим нового студента.
-        student.setId(0);
-        ResponseEntity<Student> response = restTemplate.postForEntity(baseUrl, entity, Student.class);
-
-        Assertions.assertThat(response).isNotNull();
-        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(response.getBody().getId()).isPositive();
-        Assertions.assertThat(response.getBody().getName()).isEqualTo(student.getName());
-        Assertions.assertThat(response.getBody().getAge()).isEqualTo(student.getAge());
+        Assertions.assertThat(addResponse).isNotNull();
+        Assertions.assertThat(addResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(addResponse.getBody()).isNotNull();
+        Assertions.assertThat(addResponse.getBody().getId()).isPositive();
+        Assertions.assertThat(addResponse.getBody().getName()).isEqualTo(student.getName());
 
         // Попробуем добавить уже существующего студента.
-        student.setId(response.getBody().getId());
-        ResponseEntity<ErrorResponse> errorResponse = restTemplate.postForEntity(baseUrl, entity, ErrorResponse.class);
+        ResponseEntity<ErrorResponse> errorResponse = addSame(restTemplate,
+                studentApiUrl, student, addResponse.getBody().getId());
 
         Assertions.assertThat(errorResponse).isNotNull();
         Assertions.assertThat(errorResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -124,73 +97,185 @@ class StudentControllerIntegrityTest {
 
     @Test
     @DisplayName("Получение студента -> студент получен")
-    void whenGetStudent_thenReturnsExpectedStudent() throws Exception {
+    void whenGetStudent_thenReturnsExpectedStudent() {
 
         final Student student = students[0];
+        ResponseEntity<Student> addResponse = addNew(restTemplate,
+                studentApiUrl, student);
 
-        // TODO Найдём студента.
-        // TODO Не найдём студента
+        final long assignedId = Objects.requireNonNull(addResponse.getBody()).getId();
+
+        // Получим добавленного студента.
+        ResponseEntity<Student> getResponse = restTemplate.getForEntity(
+                String.format("%s/%d", studentApiUrl, assignedId), Student.class);
+
+        Assertions.assertThat(getResponse).isNotNull();
+        Assertions.assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(getResponse.getBody()).isNotNull();
+        Assertions.assertThat(getResponse.getBody().getId()).isEqualTo(assignedId);
+        Assertions.assertThat(getResponse.getBody().getName()).isEqualTo(student.getName());
+
+        // Запросим сведения о несуществующем студенте.
+        ResponseEntity<ErrorResponse> errorResponse = restTemplate.getForEntity(
+                String.format("%s/%d", studentApiUrl, wrongId), ErrorResponse.class);
+
+        Assertions.assertThat(errorResponse).isNotNull();
+        Assertions.assertThat(errorResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        Assertions.assertThat(Objects.requireNonNull(errorResponse.getBody()).code())
+                .isEqualTo(StudentNotFoundException.CODE);
     }
 
     @Test
     @DisplayName("Обновление студента -> обновлённый студент получен")
-    void whenUpdateStudent_thenReturnsUpdatedStudent() throws Exception {
+    void whenUpdateStudent_thenReturnsUpdatedStudent() {
 
         final Student student = students[0];
-        final Student studentUpdated = new Student(
+        addNew(restTemplate, studentApiUrl, student);
+
+        // Обновим существующего студента.
+        final Student updatedStudent = new Student(
                 student.getId(),
                 student.getName() + " updated",
                 student.getAge() + 2,
                 null);
 
-        // TODO Обновим существующего студента.
+        var entity = new HttpEntity<>(updatedStudent);
+        restTemplate.exchange(
+                studentApiUrl, HttpMethod.PUT, entity, Student.class);
 
-        // TODO Обновим несуществующего студента.
+        ResponseEntity<Student> getResponse = restTemplate.getForEntity(
+                String.format("%s/%d", studentApiUrl, updatedStudent.getId()), Student.class);
+
+        Assertions.assertThat(getResponse).isNotNull();
+        Assertions.assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(getResponse.getBody()).isNotNull();
+        Assertions.assertThat(getResponse.getBody().getId()).isEqualTo(updatedStudent.getId());
+        Assertions.assertThat(getResponse.getBody().getName()).isEqualTo(updatedStudent.getName());
+
+        // Обновим несуществующего студента.
+        updatedStudent.setId(wrongId);
+        entity = new HttpEntity<>(updatedStudent);
+        final ResponseEntity<ErrorResponse> errorResponse = restTemplate.exchange(
+                studentApiUrl, HttpMethod.PUT, entity, ErrorResponse.class);
+
+        Assertions.assertThat(errorResponse).isNotNull();
+        Assertions.assertThat(errorResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        Assertions.assertThat(Objects.requireNonNull(errorResponse.getBody()).code())
+                .isEqualTo(StudentNotFoundException.CODE);
     }
 
     @Test
     @DisplayName("Удаление студента -> удалённый студент получен в последний раз")
-    void whenDeleteStudent_thenReturnsDeletedStudent() throws Exception {
+    void whenDeleteStudent_thenReturnsDeletedStudent() {
 
         final Student student = students[0];
+        ResponseEntity<Student> addResponse = addNew(restTemplate,
+                studentApiUrl, student);
 
-        // TODO Удалим существующего студента.
+        long assignedId = Objects.requireNonNull(addResponse.getBody()).getId();
 
-        // TODO Удалим несуществующего студента.
+        // Удалим существующего студента.
+        ResponseEntity<Student> deleteResponse = restTemplate.exchange(
+                String.format("%s/%d", studentApiUrl, assignedId), HttpMethod.DELETE, null,
+                Student.class);
+
+        Assertions.assertThat(deleteResponse).isNotNull();
+        Assertions.assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(deleteResponse.getBody()).isNotNull();
+        Assertions.assertThat(deleteResponse.getBody().getId()).isEqualTo(assignedId);
+        Assertions.assertThat(deleteResponse.getBody().getName()).isEqualTo(student.getName());
+
+        // Удалим несуществующего студента.
+        ResponseEntity<ErrorResponse> errorResponse = restTemplate.exchange(
+                String.format("%s/%d", studentApiUrl, wrongId), HttpMethod.DELETE, null,
+                ErrorResponse.class);
+
+        Assertions.assertThat(errorResponse).isNotNull();
+        Assertions.assertThat(errorResponse.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        Assertions.assertThat(Objects.requireNonNull(errorResponse.getBody()).code())
+                .isEqualTo(StudentNotFoundException.CODE);
     }
 
     @Test
-    @DisplayName("Установка факультета -> студент с установленным факультетом получен")
-    void whenSetFaculty_thenReturnsStudent() throws Exception {
+    @DisplayName("Установка факультета студента -> студент с установленным факультетом получен")
+    void whenSetFaculty_thenReturnsStudent() {
 
         final Student student = students[0];
         student.setFaculty(null);
-        final Faculty faculty = new Faculty(900, "Факультет 1", "Вечно синие", null);
+        ResponseEntity<Student> addResponse = addNew(restTemplate,
+                studentApiUrl, student);
+        final Student newStudent = addResponse.getBody();
 
-        // TODO Установим факультет по id.
+        Assertions.assertThat(newStudent).isNotNull();
 
-        // См. тесты WebMvcTest:
-        // почему в этом случае я не вижу $.id и $.name?
-        // какой метод лучше применять, если я меняю объект частично
-        // через запрос по адресу типа /student/{studentId}/faculty/{facultyId}?
+        final Faculty faculty = faculties[0];
+        ResponseEntity<Faculty> addFacultyResponse = addNew(restTemplate,
+                facultyApiUrl, faculty);
 
-        // TODO Получим ошибку.
+        final Faculty newFaculty = Objects.requireNonNull(addFacultyResponse.getBody());
+
+        // Прикрепим студента к факультету.
+        newStudent.setFaculty(newFaculty);
+        HttpEntity<Student> studentEntity = new HttpEntity<>(student);
+        restTemplate.exchange(
+                studentApiUrl, HttpMethod.PUT, studentEntity, Student.class);
+
+        ResponseEntity<Student> getResponse = restTemplate.getForEntity(
+                String.format("%s/%d", studentApiUrl, newStudent.getId()), Student.class);
+
+        Assertions.assertThat(getResponse).isNotNull();
+        Assertions.assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(getResponse.getBody()).isNotNull();
+        Assertions.assertThat(getResponse.getBody().getId()).isEqualTo(newStudent.getId());
+        Assertions.assertThat(getResponse.getBody().getFaculty()).isNotNull();
+        Assertions.assertThat(getResponse.getBody().getFaculty().getId()).isEqualTo(newFaculty.getId());
+        Assertions.assertThat(getResponse.getBody().getFaculty().getName()).isEqualTo(newFaculty.getName());
+
+        // Получим ошибку.
+        // Попытаемся установить факультет, которого нет в базе.
+        final Faculty badFaculty = faculties[1];
+        badFaculty.setId(wrongId);
+
+        newStudent.setFaculty(badFaculty);
+
+        studentEntity = new HttpEntity<>(newStudent);
+        ResponseEntity<Student> badStudentResponse = restTemplate.exchange(
+                studentApiUrl, HttpMethod.PUT, studentEntity, Student.class);
+
+        Assertions.assertThat(badStudentResponse).isNotNull();
     }
 
     @Test
-    @DisplayName("Получение факультета -> факультет получен")
+    @DisplayName("Получение факультета студента -> факультет получен")
     void whenGetFaculty_thenReturnsFaculty() throws Exception {
 
         final Student student = students[0];
-        final var set = new HashSet<>(List.of(student));
-        student.setFaculty(new Faculty(1, "Факультет 1", "Вечно синие", set));
+        final ResponseEntity<Student> addResponse = addNew(restTemplate,
+                studentApiUrl, student);
 
-        // TODO Получим объект факультета.
+        final Faculty faculty = faculties[0];
+        final ResponseEntity<Faculty> addFacultyResponse = addNew(restTemplate,
+                facultyApiUrl, faculty);
 
-        // TODO Не получим факультет потому, что он не установлен.
-        student.setFaculty(null);
+        Objects.requireNonNull(addResponse.getBody())
+                .setFaculty(addFacultyResponse.getBody());
 
-        // TODO Получим ошибку.
+        final HttpEntity<Student> studentEntity = new HttpEntity<>(addResponse.getBody());
+        ResponseEntity<Student> updateResponse = restTemplate.exchange(studentApiUrl,
+                HttpMethod.PUT, studentEntity, Student.class);
+
+        ResponseEntity<Student> getResponse = restTemplate.getForEntity(
+                String.format("%s/%d/faculty",
+                        studentApiUrl, Objects.requireNonNull(updateResponse.getBody()).getId()),
+                Student.class);
+
+        Assertions.assertThat(getResponse).isNotNull();
+        Assertions.assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(getResponse.getBody()).isNotNull();
+        Assertions.assertThat(getResponse.getBody().getId()).isEqualTo(addResponse.getBody().getId());
+        Assertions.assertThat(getResponse.getBody().getFaculty()).isNotNull();
+        Assertions.assertThat(getResponse.getBody().getFaculty().getId())
+                .isEqualTo(Objects.requireNonNull(addFacultyResponse.getBody()).getId());
     }
 
     @Test

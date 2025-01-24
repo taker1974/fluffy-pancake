@@ -1,8 +1,6 @@
 package ru.hogwarts.school;
 
 import lombok.RequiredArgsConstructor;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -48,7 +46,7 @@ import static org.mockito.Mockito.when;
         FacultyRepository.class, StudentRepository.class,
         Faculty.class, Student.class})
 @WebMvcTest
-class FacultyControllerWebMvcTest {
+class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
 
     @Autowired
     MockMvc mvc;
@@ -67,25 +65,6 @@ class FacultyControllerWebMvcTest {
 
     @InjectMocks
     FacultyController studentController;
-
-    final Faculty[] faculties = new Faculty[]{
-            new Faculty(100, "Faculty of Magic", "Fantastic Red", null),
-            new Faculty(101, "Faculty of Science", "Deep Blue", null),
-            new Faculty(102, "Faculty of Arts", "Smoky Brown", null)
-    };
-
-    final long wrongId = 45334L;
-
-    String buildJson(Faculty faculty) {
-        try {
-            return new JSONObject()
-                    .put("id", faculty.getId())
-                    .put("name", faculty.getName())
-                    .put("color", faculty.getColor()).toString();
-        } catch (JSONException e) {
-            return "";
-        }
-    }
 
     @Test
     @DisplayName("Добавление факультета -> факультет добавлен")
