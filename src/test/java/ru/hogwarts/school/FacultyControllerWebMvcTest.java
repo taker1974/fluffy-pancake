@@ -121,7 +121,7 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
         // Не найдём факультет.
         when(facultyRepository.findById(anyLong())).thenReturn(Optional.empty());
         mvc.perform(MockMvcRequestBuilders
-                        .get("/faculty/" + wrongId)
+                        .get("/faculty/" + BAD_ID)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(result -> assertThat(result.getResolvedException())

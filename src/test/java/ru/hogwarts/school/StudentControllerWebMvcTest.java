@@ -1,8 +1,6 @@
 package ru.hogwarts.school;
 
 import lombok.RequiredArgsConstructor;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -152,7 +150,7 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
         // Не найдём студента
         when(studentRepository.findById(anyLong())).thenReturn(Optional.empty());
         mvc.perform(MockMvcRequestBuilders
-                        .get("/student/" + wrongId)
+                        .get("/student/" + BAD_ID)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(result -> assertThat(result.getResolvedException())
@@ -291,7 +289,7 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
         when(studentRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         mvc.perform(MockMvcRequestBuilders
-                        .get(String.format("/student/%d/faculty", wrongId))
+                        .get(String.format("/student/%d/faculty", BAD_ID))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(result -> assertThat(result.getResolvedException())
@@ -329,7 +327,7 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
         when(studentRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         mvc.perform(MockMvcRequestBuilders
-                        .request(HttpMethod.PATCH, String.format("/student/%d/faculty/reset", wrongId))
+                        .request(HttpMethod.PATCH, String.format("/student/%d/faculty/reset", BAD_ID))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(result -> assertThat(result.getResolvedException())
