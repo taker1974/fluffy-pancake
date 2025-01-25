@@ -25,6 +25,7 @@ import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Objects;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -180,8 +181,7 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         ResponseEntity<Student> addResponse = rest.postForEntity(url, new HttpEntity<>(student), Student.class);
         Student addedStudent = Objects.requireNonNull(addResponse.getBody());
 
-        final String linkageUrl = String.format("%s/school/student/%d/faculty/%d", baseUrl,
-                addedStudent.getId(), addedFaculty.getId());
+        final String linkageUrl = url + "/" + addedStudent.getId() + "/faculty/" + addedFaculty.getId();
 
         // Устанавливаем факультет через идентификаторы.
         rest.exchange(linkageUrl, HttpMethod.PATCH, null, Student.class);
@@ -200,8 +200,7 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         Assertions.assertThat(getResponse.getBody().getFaculty().getName()).isEqualTo(addedFaculty.getName());
 
         // Попытаемся установить несуществующий факультет.
-        final String badLinkageUrl = String.format("%s/school/student/%d/faculty/%d", baseUrl,
-                addedStudent.getId(), BAD_ID);
+        final String badLinkageUrl = url + "/" + addedStudent.getId() + "/faculty/" + BAD_ID;
 
         ResponseEntity<ErrorResponse> errorResponse = rest.exchange(badLinkageUrl, HttpMethod.PATCH,
                 null, ErrorResponse.class);
@@ -285,7 +284,7 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         Assertions.assertThat(getResponse.getBody().getFaculty()).isNotNull();
         Assertions.assertThat(getResponse.getBody().getFaculty().getId()).isEqualTo(addedFaculty.getId());
 
-        final String deleteUrl = baseUrl + "/school/student/" + addedStudent.getId() + "/faculty/reset";
+        final String deleteUrl = url + "/" + addedStudent.getId() + "/faculty/reset";
 
         ResponseEntity<Student> resetResponse = rest.exchange(deleteUrl, HttpMethod.PATCH,
                 null, Student.class);
@@ -327,12 +326,63 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @Test
     @DisplayName("Поиск студентов по точному возрасту -> список студентов получен")
     void whenFindStudentsByAgeExact_thenReturnsStudentsOfAge() {
-        Assertions.assertThat(true).isTrue();
+
+        final String url = baseUrl + "/school/student";
+
+        final Integer[] ages = new Integer[students.length];
+        int baseAge = 17;
+        for (int i = 0; i < ages.length; i++) {
+            ages[i] = baseAge++;
+        }
+        final Iterator<Integer> agesIterator = (Arrays.asList(ages)).iterator();
+
+        // Добавим студентов из массива.
+        Arrays.stream(students).forEach(student -> {
+            createByAnother(student);
+            student.setAge(agesIterator.next());
+            rest.postForEntity(url, new HttpEntity<>(student), Student.class);
+        });
+
+        // Найдём студента с указанным возрастом. Он должен быть один.
+        final ResponseEntity<Student[]> arrayResponse = rest.getForEntity(url + "/filter/age/" + ages[0],
+                Student[].class);
+
+        Assertions.assertThat(arrayResponse).isNotNull();
+        Assertions.assertThat(arrayResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(arrayResponse.getBody()).isNotEmpty();
+        Assertions.assertThat(arrayResponse.getBody()).hasSize(1);
     }
 
     @Test
     @DisplayName("Поиск студентов по диапазону возраста -> список студентов получен")
     void whenFindStudentsByAgeBetween_thenReturnsStudentsOfAgeRange() {
-        Assertions.assertThat(true).isTrue();
+
+        final String url = baseUrl + "/school/student";
+
+        final Integer[] ages = new Integer[students.length];
+        int baseAge = 17;
+        for (int i = 0; i < ages.length; i++) {
+            ages[i] = baseAge++;
+        }
+        final Iterator<Integer> agesIterator = (Arrays.asList(ages)).iterator();
+
+        // Добавим студентов из массива.
+        Arrays.stream(students).forEach(student -> {
+            createByAnother(student);
+            student.setAge(agesIterator.next());
+            rest.postForEntity(url, new HttpEntity<>(student), Student.class);
+        });
+
+        Assertions.assertThat(students).hasSizeGreaterThan(1);
+
+        // Найдём студентов с указанными границами возраста.
+        // Пусть их будет двое.
+        final ResponseEntity<Student[]> arrayResponse = rest.getForEntity(
+                url + "/filter/age/between?fromAge=17&toAge=18", Student[].class);
+
+        Assertions.assertThat(arrayResponse).isNotNull();
+        Assertions.assertThat(arrayResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(arrayResponse.getBody()).isNotEmpty();
+        Assertions.assertThat(arrayResponse.getBody()).hasSize(2);
     }
 }
