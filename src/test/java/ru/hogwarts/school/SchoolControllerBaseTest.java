@@ -37,6 +37,10 @@ public abstract class SchoolControllerBaseTest {
         return new Student(student.getId(), student.getName(), student.getAge(), student.getFaculty());
     }
 
+    public static Faculty copyFrom(Faculty faculty) {
+        return new Faculty(faculty.getId(), faculty.getName(), faculty.getColor(), null);
+    }
+
     public static String buildJson(Student student) {
         try {
             return new JSONObject()
@@ -69,6 +73,16 @@ public abstract class SchoolControllerBaseTest {
         Assertions.assertThat(response.getBody().getId()).isPositive();
         Assertions.assertThat(response.getBody().getName()).isEqualTo(student.getName());
         Assertions.assertThat(response.getBody().getAge()).isEqualTo(student.getAge());
+    }
+
+    public static void assertResponse(ResponseEntity<Faculty> response, Faculty faculty) {
+
+        Assertions.assertThat(response).isNotNull();
+        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(response.getBody()).isNotNull();
+        Assertions.assertThat(response.getBody().getId()).isPositive();
+        Assertions.assertThat(response.getBody().getName()).isEqualTo(faculty.getName());
+        Assertions.assertThat(response.getBody().getColor()).isEqualTo(faculty.getColor());
     }
 
     public static void assertErrorResponse(ResponseEntity<ErrorResponse> errorResponse,

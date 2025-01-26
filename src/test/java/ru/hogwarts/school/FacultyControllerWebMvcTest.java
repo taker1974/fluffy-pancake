@@ -54,15 +54,21 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
     @MockitoBean
     FacultyRepository facultyRepository;
 
+    // @SuppressWarnings: члены необходимы, хотя и обнаруживаются как неиспользуемые.
+
+    @SuppressWarnings("unused")
     @MockitoBean
     StudentRepository studentRepository;
 
+    @SuppressWarnings("unused")
     @MockitoSpyBean
     FacultyService facultyService;
 
+    @SuppressWarnings("unused")
     @MockitoSpyBean
     StudentService studentService;
 
+    @SuppressWarnings("unused")
     @InjectMocks
     FacultyController studentController;
 
@@ -204,7 +210,7 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
         when(facultyRepository.findByColorIgnoreCase(anyString())).thenReturn(Arrays.asList(sameColorFaculties));
 
         mvc.perform(MockMvcRequestBuilders
-                        .get("/faculty/filter/color/" + faculties[0].getColor()) // без разницы
+                        .get("/faculty/filter/color?color=" + faculties[0].getColor()) // без разницы
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(sameColorFaculties.length));
@@ -213,7 +219,7 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
         when(facultyRepository.findByColorIgnoreCase(anyString())).thenReturn(Collections.emptyList());
 
         mvc.perform(MockMvcRequestBuilders
-                        .get("/faculty/filter/color/" + faculties[0].getColor())
+                        .get("/faculty/filter/color?color=" + faculties[0].getColor())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(0));

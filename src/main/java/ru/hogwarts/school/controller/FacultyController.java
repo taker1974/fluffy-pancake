@@ -51,8 +51,8 @@ public class FacultyController {
     }
 
     @Operation(summary = "Поиск факультетов по точному совпадению \"цвета\"")
-    @GetMapping(value = "/filter/color/{color}")
-    public ResponseEntity<Collection<Faculty>> findFacultiesByColor(@PathVariable String color) {
+    @GetMapping(value = "/filter/color")
+    public ResponseEntity<Collection<Faculty>> findFacultiesByColor(String color) {
         return ResponseEntity.ok(facultyService.findFacultiesByColor(color));
     }
 
@@ -68,7 +68,7 @@ public class FacultyController {
         return ResponseEntity.ok(facultyService.getAllFaculties());
     }
 
-    @Operation(summary = "Получение всех студентов факультета")
+    @Operation(summary = "Получение студентов факультета")
     @GetMapping(value = "/{facultyId}/students")
     public ResponseEntity<Collection<Student>> findStudentsByFaculty(@PathVariable long facultyId) {
         return ResponseEntity.ok(facultyService.getFaculty(facultyId).getStudents());

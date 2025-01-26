@@ -310,10 +310,8 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         Assertions.assertThat(emptyArrayResponse.getBody()).isEmpty();
 
         // Добавим студентов из массива.
-        Arrays.stream(students).forEach(student -> {
-            createByAnother(student);
-            rest.postForEntity(url, new HttpEntity<>(student), Student.class);
-        });
+        Arrays.stream(students).forEach(student ->
+                rest.postForEntity(url, new HttpEntity<>(createByAnother(student)), Student.class));
 
         final ResponseEntity<Student[]> arrayResponse = rest.getForEntity(url, Student[].class);
 
@@ -338,9 +336,8 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
 
         // Добавим студентов из массива.
         Arrays.stream(students).forEach(student -> {
-            createByAnother(student);
             student.setAge(agesIterator.next());
-            rest.postForEntity(url, new HttpEntity<>(student), Student.class);
+            rest.postForEntity(url, new HttpEntity<>(createByAnother(student)), Student.class);
         });
 
         // Найдём студента с указанным возрастом. Он должен быть один.
@@ -368,9 +365,8 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
 
         // Добавим студентов из массива.
         Arrays.stream(students).forEach(student -> {
-            createByAnother(student);
             student.setAge(agesIterator.next());
-            rest.postForEntity(url, new HttpEntity<>(student), Student.class);
+            rest.postForEntity(url, new HttpEntity<>(createByAnother(student)), Student.class);
         });
 
         Assertions.assertThat(students).hasSizeGreaterThan(1);
