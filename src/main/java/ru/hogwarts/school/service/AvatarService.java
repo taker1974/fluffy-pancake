@@ -1,7 +1,6 @@
 package ru.hogwarts.school.service;
 
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,11 +54,8 @@ public class AvatarService {
     @Transactional
     public Avatar uploadAvatar(long studentId, MultipartFile avatarFile) {
 
-        // Сначала получим студента - без него всё остальное не имеет смысла.
         final Student student = studentRepository.findById(studentId)
                 .orElseThrow(StudentNotFoundException::new);
-
-        // Выполним простые проверки: решим, сможем ли мы обработать файл.
 
         if (avatarFile == null) {
             throw new NullAvatarFileException();
@@ -74,18 +70,16 @@ public class AvatarService {
                         1, FilesEx.MAX_FQN_LENGTH)
                 .orElseThrow(() -> new BadAvatarFileNameException(1, FilesEx.MAX_FQN_LENGTH));
 
-        // Получим уникальное имя файла.
+        // Получим уникальное имя файла из оригинального имени и уникальной строки (UUID).
+        // Для оригинального имени файла originalFileName.ext уникальное имя файла будет выглядеть так:
+        // "originalFileName-UUID.ext"
+        // См. UniqueFileNamePolicy.
         final String fileName = FilesEx.buildUniqueFileName(originalFileName,
                         "-" + UUID.randomUUID(), FilesEx.UniqueFileNamePolicy.SALT_LAST)
                 .orElseThrow(FailedBuildAvatarFileNameException::new);
 
-        // Проверки выполнены,
-        // и теперь можно выполнять операции с БД и с файловой системой.
-
-        // Пробуем получить аватар студента.
         Optional<Avatar> optionalAvatar = avatarRepository.findByStudentId(studentId);
 
-        // Если аватар уже есть, то удалим его из файловой системы.
         if (optionalAvatar.isPresent()) {
             try {
                 Files.deleteIfExists(Path.of(optionalAvatar.get().getFilePath()));
@@ -94,24 +88,23 @@ public class AvatarService {
             }
         }
 
-        // Если аватар не был найден, то создадим его.
         final Avatar avatar = optionalAvatar.orElseGet(Avatar::new);
 
         Path filePath = Path.of(avatarsPath, fileName);
 
-        // Сначала сохраним или обновим аватар в БД.
+        avatarRepository.save(avatar);
+
+        avatar.setFilePath(filePath.toString());
+        avatar.setFileSize(avatarFile.getSize());
+        avatar.setMediaType(avatarFile.getContentType());
+        avatar.setStudent(student);
+
         try {
-            avatar.setFilePath(filePath.toString());
-            avatar.setFileSize(avatarFile.getSize());
-            avatar.setMediaType(avatarFile.getContentType());
             avatar.setData(avatarFile.getBytes());
-            avatar.setStudent(student);
         } catch (IOException e) {
             throw new BadAvatarDataException();
         }
-        avatarRepository.save(avatar);
 
-        // В последнюю очередь запишем новый файл аватара на диск.
         try {
             Files.createDirectories(filePath.getParent());
             Files.deleteIfExists(filePath);
@@ -143,10 +136,8 @@ public class AvatarService {
         }
         final Avatar avatar = optionalAvatar.get();
 
-        // Удаляем аватар из БД.
         avatarRepository.delete(avatar);
 
-        // Удаляем аватар из файловой системы.
         try {
             Files.deleteIfExists(Path.of(avatar.getFilePath()));
         } catch (IOException e) {
