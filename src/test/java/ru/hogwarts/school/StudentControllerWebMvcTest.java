@@ -97,12 +97,11 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
 
     @Test
     @DisplayName("Добавление студента -> студент добавлен")
-    void whenAddStudent_thenReturnsExpectedStudent() throws Exception {
+    void whenAddStudent_thenReturnsStudentId() throws Exception {
 
         final Student student = students[0];
         final String studentJson = buildJson(students[0]);
 
-        // Убедимся, что новый студент добавляется успешно.
         when(studentRepository.findById(anyLong())).thenReturn(Optional.empty()); // студент не существует
         when(studentRepository.save(any(Student.class))).thenReturn(student);
 
@@ -112,12 +111,8 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(student.getId()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(student.getName()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.age").value(student.getAge()));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(student.getId()));
 
-        // Попытаемся добавить существующего студента и
-        // убедимся, что студент не добавляется.
         when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student)); // студент уже существует
 
         mvc.perform(MockMvcRequestBuilders
@@ -136,7 +131,6 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
 
         final Student student = students[0];
 
-        // Найдём студента.
         when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student)); // студент есть
 
         mvc.perform(MockMvcRequestBuilders
@@ -147,8 +141,7 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(student.getName()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.age").value(student.getAge()));
 
-        // Не найдём студента
-        when(studentRepository.findById(anyLong())).thenReturn(Optional.empty());
+        when(studentRepository.findById(anyLong())).thenReturn(Optional.empty()); // студент не существует
         mvc.perform(MockMvcRequestBuilders
                         .get("/student/" + BAD_ID)
                         .accept(MediaType.APPLICATION_JSON))
@@ -169,7 +162,6 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
                 null);
         final String jsonUpdated = buildJson(studentUpdated);
 
-        // Обновим существующего студента.
         when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student));
         when(studentRepository.save(any(Student.class))).thenReturn(studentUpdated);
 
@@ -183,7 +175,6 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(studentUpdated.getName()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.age").value(studentUpdated.getAge()));
 
-        // Обновим несуществующего студента.
         when(studentRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         mvc.perform(MockMvcRequestBuilders

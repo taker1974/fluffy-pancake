@@ -8,7 +8,8 @@ import ru.hogwarts.school.exception.faculty.NullFacultyException;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.repository.FacultyRepository;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -41,22 +42,23 @@ public class FacultyService {
         return facultyRepository.save(faculty);
     }
 
-    public Faculty deleteFaculty(long id) {
-        final Faculty existingFaculty = facultyRepository.findById(id)
-                .orElseThrow(FacultyNotFoundException::new);
+    public void deleteFaculty(long id) {
+        final Optional<Faculty> optionalFaculty = facultyRepository.findById(id);
+        if (optionalFaculty.isEmpty()) {
+            throw new FacultyNotFoundException();
+        }
         facultyRepository.deleteById(id);
-        return existingFaculty;
     }
 
-    public Collection<Faculty> getAllFaculties() {
+    public List<Faculty> getAllFaculties() {
         return facultyRepository.findAll();
     }
 
-    public Collection<Faculty> findFacultiesByColor(String color) {
+    public List<Faculty> findFacultiesByColor(String color) {
         return facultyRepository.findByColorIgnoreCase(color);
     }
 
-    public Collection<Faculty> findFacultiesByNameOrColorIgnoreCase(String name, String color) {
+    public List<Faculty> findFacultiesByNameOrColorIgnoreCase(String name, String color) {
         return facultyRepository.findByNameOrColorIgnoreCase(name, color);
     }
 }

@@ -5,14 +5,14 @@ import org.springframework.data.jpa.repository.Query;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 
-import java.util.Collection;
+import java.util.List;
 
 public interface FacultyRepository extends JpaRepository<Faculty, Long> {
 
-    Collection<Faculty> findByColorIgnoreCase(String color);
+    List<Faculty> findByColorIgnoreCase(String color);
 
-    Collection<Faculty> findByNameOrColorIgnoreCase(String name, String color);
+    List<Faculty> findByNameOrColorIgnoreCase(String name, String color);
 
     @Query("SELECT s FROM Student s WHERE s.faculty = :facultyId")
-    Collection<Student> findStudents(long facultyId);
+    List<Student> findStudents(long facultyId);
 }

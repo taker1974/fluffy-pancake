@@ -26,7 +26,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -128,11 +128,11 @@ public class AvatarService {
     }
 
     @Transactional
-    public Optional<Avatar> deleteAvatar(long studentId) {
+    public void deleteAvatar(long studentId) {
 
         final Optional<Avatar> optionalAvatar = avatarRepository.findByStudentId(studentId);
         if (optionalAvatar.isEmpty()) {
-            return Optional.empty();
+            return;
         }
         final Avatar avatar = optionalAvatar.get();
 
@@ -143,12 +143,10 @@ public class AvatarService {
         } catch (IOException e) {
             throw new IOAvatarFileException();
         }
-
-        return Optional.of(avatar);
     }
 
     @Transactional
-    public Collection<Avatar> getAllAvatars() {
+    public List<Avatar> getAllAvatars() {
         return avatarRepository.findAll();
     }
 }

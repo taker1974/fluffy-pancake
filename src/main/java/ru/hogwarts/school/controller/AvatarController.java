@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import ru.hogwarts.school.exception.avatar.IOAvatarFileException;
@@ -24,7 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -35,20 +36,21 @@ public class AvatarController {
 
     private final AvatarService avatarService;
 
-    // Здесь post потому, что всегда создаётся новый аватар, новый ресурс на сервере.
-    @Operation(summary = "Загрузка аватара студента")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Загрузка аватара студента. Возвращает id аватара")
     @PostMapping(value = "/student/{studentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Avatar> uploadAvatar(@PathVariable long studentId,
-                                               @RequestParam MultipartFile avatar) {
-        return ResponseEntity.ok(avatarService.uploadAvatar(studentId, avatar));
+    public long uploadAvatar(@PathVariable long studentId, @RequestParam MultipartFile avatar) {
+        return avatarService.uploadAvatar(studentId, avatar).getId();
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Удаление аватара студента")
     @DeleteMapping(value = "/student/{studentId}")
-    public ResponseEntity<Optional<Avatar>> deleteAvatar(@PathVariable long studentId) {
-        return ResponseEntity.ok(avatarService.deleteAvatar(studentId));
+    public void deleteAvatar(@PathVariable long studentId) {
+        avatarService.deleteAvatar(studentId);
     }
 
+    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Загрузка аватара студента из базы данных")
     @GetMapping(value = "/student/db/{studentId}")
     public ResponseEntity<byte[]> downloadAvatarFromDb(@PathVariable long studentId) {
@@ -66,6 +68,7 @@ public class AvatarController {
                 .body(avatar.get().getData());
     }
 
+    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Загрузка аватара студента из файла")
     @GetMapping(value = "/student/file/{studentId}")
     public void downloadAvatarFromFile(@PathVariable long studentId, HttpServletResponse response) {
@@ -94,9 +97,10 @@ public class AvatarController {
         }
     }
 
-    @Operation(summary = "Получение всех аватаров")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение всех аватарок")
     @GetMapping
-    public Collection<Avatar> getAllAvatars() {
+    public List<Avatar> getAllAvatars() {
         return avatarService.getAllAvatars();
     }
 }

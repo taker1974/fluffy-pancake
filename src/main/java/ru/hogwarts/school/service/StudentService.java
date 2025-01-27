@@ -9,7 +9,8 @@ import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repository.StudentRepository;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -42,39 +43,39 @@ public class StudentService {
         return studentRepository.save(student);
     }
 
-    public Student deleteStudent(long id) {
-        final Student student = studentRepository.findById(id)
-                .orElseThrow(StudentNotFoundException::new);
+    public void deleteStudent(long id) {
+        final Optional<Student> optionalStudent = studentRepository.findById(id);
+        if (optionalStudent.isEmpty()) {
+            throw new StudentNotFoundException();
+        }
         studentRepository.deleteById(id);
-        return student;
     }
 
-    public Student setFaculty(long studentId, Faculty faculty) {
+    public void setFaculty(long studentId, Faculty faculty) {
         final Student student = studentRepository.findById(studentId)
                 .orElseThrow(StudentNotFoundException::new);
 
         student.setFaculty(faculty);
-        return studentRepository.save(student);
+        studentRepository.save(student);
     }
 
-    public Student resetFaculty(long studentId) {
+    public void resetFaculty(long studentId) {
         final Student student = studentRepository.findById(studentId)
                 .orElseThrow(StudentNotFoundException::new);
 
         student.setFaculty(null);
         studentRepository.save(student);
-        return student;
     }
 
-    public Collection<Student> getAllStudents() {
+    public List<Student> getAllStudents() {
         return studentRepository.findAll();
     }
 
-    public Collection<Student> findStudentsByAge(int age) {
+    public List<Student> findStudentsByAge(int age) {
         return studentRepository.findByAge(age);
     }
 
-    public Collection<Student> findStudentsByAgeBetween(int fromAge, int toAge) {
+    public List<Student> findStudentsByAgeBetween(int fromAge, int toAge) {
         return studentRepository.findByAgeBetween(fromAge, toAge);
     }
 }
