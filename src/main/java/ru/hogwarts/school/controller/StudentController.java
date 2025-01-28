@@ -33,7 +33,7 @@ public class StudentController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Добавление нового студента. Возвращает id нового студента")
     @PostMapping("/add")
-    public long addStudent(@RequestBody Student student) {
+    public Long addStudent(@RequestBody Student student) {
         return studentService.addStudent(student).getId();
     }
 
@@ -80,7 +80,7 @@ public class StudentController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Получение всех студентов")
+    @Operation(summary = "Получение списка всех студентов")
     @GetMapping
     public List<Student> getAllStudents() {
         return studentService.getAllStudents();

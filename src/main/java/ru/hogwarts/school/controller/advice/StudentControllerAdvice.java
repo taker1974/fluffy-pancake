@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import ru.hogwarts.school.dto.ErrorResponse;
 import ru.hogwarts.school.exception.student.BadStudentAgeException;
 import ru.hogwarts.school.exception.student.BadStudentNameException;
@@ -41,7 +42,10 @@ public class StudentControllerAdvice extends AbstractBaseControllerAdvice {
                 HttpStatus.CONFLICT);
     }
 
-    // Это не работает - возникает зацикливание на представлении
+    // TODO Решить, как оптимально организовывать перехват исключений в плане возвращаемых данных.
+//    // Это не работает:
+//    // - возникает зацикливание на представлении без запрета white page;
+//    // - ничего не возвращается с запретом white page.
 //    @ResponseStatus(HttpStatus.CONFLICT)
 //    @ExceptionHandler(StudentAlreadyExistsException.class)
 //    public ErrorResponse handleStudentAlreadyExistsException(StudentAlreadyExistsException e) {

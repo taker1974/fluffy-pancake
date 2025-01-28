@@ -31,7 +31,7 @@ public class FacultyController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Добавление нового факультета. Возвращает id нового факультета")
     @PostMapping("/add")
-    public long addFaculty(@RequestBody Faculty faculty) {
+    public Long addFaculty(@RequestBody Faculty faculty) {
         return facultyService.addFaculty(faculty).getId();
     }
 

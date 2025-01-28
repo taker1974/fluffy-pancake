@@ -39,7 +39,7 @@ public class AvatarController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Загрузка аватара студента. Возвращает id аватара")
     @PostMapping(value = "/student/{studentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public long uploadAvatar(@PathVariable long studentId, @RequestParam MultipartFile avatar) {
+    public Long uploadAvatar(@PathVariable long studentId, @RequestParam MultipartFile avatar) {
         return avatarService.uploadAvatar(studentId, avatar).getId();
     }
 

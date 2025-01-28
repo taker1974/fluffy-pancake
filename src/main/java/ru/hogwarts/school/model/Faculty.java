@@ -37,4 +37,17 @@ public class Faculty {
         id = 0;
         students = null;
     }
+
+    public Faculty(Faculty faculty) {
+        id = faculty.getId();
+        name = faculty.getName();
+        color = faculty.getColor();
+        students = faculty.getStudents();
+    }
+
+    public Faculty setNew() {
+        id = 0;
+        students = null;
+        return this;
+    }
 }

@@ -167,45 +167,44 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     void whenSetStudentFaculty_thenReturnsStudentWithFaculty() {
 
         final String facultyUrl = baseUrl + "/school/faculty";
-        final Faculty faculty = createByAnother(faculties[0]);
+        final Faculty faculty = new Faculty(faculties[0]).setNew();
 
-        // Добавляем факультет.
-        ResponseEntity<Faculty> addFacultyResponse = rest.postForEntity(facultyUrl,
-                new HttpEntity<>(faculty), Faculty.class);
-        final Faculty addedFaculty = Objects.requireNonNull(addFacultyResponse.getBody());
+        ResponseEntity<Long> addFacultyResponse = rest.postForEntity(facultyUrl + "/add",
+                new HttpEntity<>(faculty), Long.class);
+
+        Assertions.assertThat(addFacultyResponse.getBody()).isNotNull();
+        faculty.setId(addFacultyResponse.getBody());
 
         final String url = baseUrl + "/school/student";
-        final Student student = createByAnother(students[0]);
+        final Student student = new Student(students[0]).setNew();
 
-        // Добавляем нового студента.
-        ResponseEntity<Student> addResponse = rest.postForEntity(url, new HttpEntity<>(student), Student.class);
-        Student addedStudent = Objects.requireNonNull(addResponse.getBody());
+        ResponseEntity<Long> addStudentResponse = rest.postForEntity(url + "/add",
+                new HttpEntity<>(student), Long.class);
 
-        final String linkageUrl = url + "/" + addedStudent.getId() + "/faculty/" + addedFaculty.getId();
+        Assertions.assertThat(addStudentResponse.getBody()).isNotNull();
+        student.setId(addStudentResponse.getBody());
 
-        // Устанавливаем факультет через идентификаторы.
-        rest.exchange(linkageUrl, HttpMethod.PATCH, null, Student.class);
+        final String linkageUrl = url + "/" + student.getId() + "/faculty/" + faculty.getId();
 
-        // Прочитаем студента и в том числе проверим факультет.
-        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + addedStudent.getId(), Student.class);
+        rest.exchange(linkageUrl, HttpMethod.PATCH, null, Void.class);
+
+        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + student.getId(), Student.class);
 
         Assertions.assertThat(getResponse).isNotNull();
         Assertions.assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         Assertions.assertThat(getResponse.getBody()).isNotNull();
-        Assertions.assertThat(getResponse.getBody().getId()).isEqualTo(addedStudent.getId());
-
+        Assertions.assertThat(getResponse.getBody().getId()).isEqualTo(student.getId());
         Assertions.assertThat(getResponse.getBody().getFaculty()).isNotNull();
-        Assertions.assertThat(getResponse.getBody().getFaculty().getId()).isEqualTo(addedFaculty.getId());
-        Assertions.assertThat(getResponse.getBody().getFaculty().getName()).isEqualTo(addedFaculty.getName());
+        Assertions.assertThat(getResponse.getBody().getFaculty().getId()).isEqualTo(faculty.getId());
+        Assertions.assertThat(getResponse.getBody().getFaculty().getName()).isEqualTo(faculty.getName());
 
-        // Попытаемся установить несуществующий факультет.
-        final String badLinkageUrl = url + "/" + addedStudent.getId() + "/faculty/" + BAD_ID;
+        final String badLinkageUrl = url + "/" + student.getId() + "/faculty/" + BAD_ID;
 
         ResponseEntity<ErrorResponse> errorResponse = rest.exchange(badLinkageUrl, HttpMethod.PATCH,
                 null, ErrorResponse.class);
 
-        assertErrorResponse(errorResponse, HttpStatus.BAD_REQUEST, FacultyNotFoundException.CODE);
+        assertErrorResponse(errorResponse, HttpStatus.NOT_FOUND, FacultyNotFoundException.CODE);
     }
 
     @Test
@@ -213,87 +212,84 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     void whenGetStudentFaculty_thenReturnsFaculty() {
 
         final String facultyUrl = baseUrl + "/school/faculty";
-        final Faculty faculty = createByAnother(faculties[0]);
+        final Faculty faculty = new Faculty(faculties[0]).setNew();
 
-        // Добавляем факультет.
-        ResponseEntity<Faculty> addFacultyResponse = rest.postForEntity(facultyUrl,
-                new HttpEntity<>(faculty), Faculty.class);
-        final Faculty addedFaculty = Objects.requireNonNull(addFacultyResponse.getBody());
+        ResponseEntity<Long> addFacultyResponse = rest.postForEntity(facultyUrl + "/add",
+                new HttpEntity<>(faculty), Long.class);
+
+        Assertions.assertThat(addFacultyResponse.getBody()).isNotNull();
+        faculty.setId(addFacultyResponse.getBody());
 
         final String url = baseUrl + "/school/student";
-        final Student student = createByAnother(students[0]);
-        student.setFaculty(addFacultyResponse.getBody());
+        final Student student = new Student(students[0]).setNew();
 
-        // Добавляем нового студента с уже добавленным факультетом.
-        ResponseEntity<Student> addResponse = rest.postForEntity(url, new HttpEntity<>(student), Student.class);
-        Student addedStudent = Objects.requireNonNull(addResponse.getBody());
+        ResponseEntity<Long> addStudentResponse = rest.postForEntity(url + "/add",
+                new HttpEntity<>(student), Long.class);
 
-        // Прочитаем студента и в том числе проверим факультет.
-        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + addedStudent.getId(), Student.class);
+        Assertions.assertThat(addStudentResponse.getBody()).isNotNull();
+        student.setId(addStudentResponse.getBody());
 
-        Assertions.assertThat(getResponse).isNotNull();
-        Assertions.assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        student.setFaculty(faculty);
+        ResponseEntity<Student> updateResponse = rest.exchange(url + "/update",
+                HttpMethod.PUT, new HttpEntity<>(student), Student.class);
 
-        Assertions.assertThat(getResponse.getBody()).isNotNull();
-        Assertions.assertThat(getResponse.getBody().getId()).isEqualTo(addedStudent.getId());
+        Assertions.assertThat(updateResponse).isNotNull();
+        Assertions.assertThat(updateResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(updateResponse.getBody()).isNotNull();
+        Assertions.assertThat(updateResponse.getBody().getId()).isEqualTo(student.getId());
+        Assertions.assertThat(updateResponse.getBody().getFaculty()).isNotNull();
+        Assertions.assertThat(updateResponse.getBody().getFaculty().getId()).isEqualTo(faculty.getId());
 
-        Assertions.assertThat(getResponse.getBody().getFaculty()).isNotNull();
-        Assertions.assertThat(getResponse.getBody().getFaculty().getId()).isEqualTo(addedFaculty.getId());
-        Assertions.assertThat(getResponse.getBody().getFaculty().getName()).isEqualTo(addedFaculty.getName());
+        final Faculty facultyNotInDb = new Faculty(faculties[1]).setNew();
+        student.setFaculty(facultyNotInDb);
 
-        // Попытаемся установить несуществующий (несуществующий в БД!) факультет.
-        final Faculty notSavedFaculty = createByAnother(faculties[1]);
-        addedStudent.setFaculty(notSavedFaculty);
+        ResponseEntity<ErrorResponse> badUpdateResponse = rest.exchange(url + "/update",
+                HttpMethod.PUT, new HttpEntity<>(student), ErrorResponse.class);
 
-        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url, HttpMethod.PATCH,
-                new HttpEntity<>(addedStudent), ErrorResponse.class);
-
-        Assertions.assertThat(errorResponse).isNotNull();
-        Assertions.assertThat(errorResponse.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        Assertions.assertThat(errorResponse.getBody()).isNotNull();
-        Assertions.assertThat(errorResponse.getBody().code()).isEqualTo(CommonControllerAdvice.E_CODE);
+        Assertions.assertThat(badUpdateResponse).isNotNull();
+        Assertions.assertThat(badUpdateResponse.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        Assertions.assertThat(badUpdateResponse.getBody()).isNotNull();
+        Assertions.assertThat(badUpdateResponse.getBody().code()).isEqualTo(CommonControllerAdvice.RTE_CODE);
     }
 
     @Test
-    @DisplayName("Сброс факультета студента -> обновлённый студент получен")
-    void whenResetStudentFaculty_thenReturnsStudent() {
+    @DisplayName("Сброс факультета студента -> возвращается статус OK")
+    void whenResetStudentFaculty_thenReturnsStatusOK() {
 
         final String facultyUrl = baseUrl + "/school/faculty";
-        final Faculty faculty = createByAnother(faculties[0]);
+        final Faculty faculty = new Faculty(faculties[0]).setNew();
 
-        // Добавляем факультет.
-        ResponseEntity<Faculty> addFacultyResponse = rest.postForEntity(facultyUrl,
-                new HttpEntity<>(faculty), Faculty.class);
-        final Faculty addedFaculty = Objects.requireNonNull(addFacultyResponse.getBody());
+        ResponseEntity<Long> addFacultyResponse = rest.postForEntity(facultyUrl + "/add",
+                new HttpEntity<>(faculty), Long.class);
+
+        Assertions.assertThat(addFacultyResponse.getBody()).isNotNull();
+        faculty.setId(addFacultyResponse.getBody());
 
         final String url = baseUrl + "/school/student";
-        final Student student = createByAnother(students[0]);
-        student.setFaculty(addFacultyResponse.getBody());
+        final Student student = new Student(students[0]).setNew();
 
-        // Добавляем нового студента с уже добавленным факультетом.
-        ResponseEntity<Student> addResponse = rest.postForEntity(url, new HttpEntity<>(student), Student.class);
-        Student addedStudent = Objects.requireNonNull(addResponse.getBody());
+        ResponseEntity<Long> addStudentResponse = rest.postForEntity(url + "/add",
+                new HttpEntity<>(student), Long.class);
 
-        // Прочитаем студента и проверим факультет.
-        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + addedStudent.getId(), Student.class);
+        Assertions.assertThat(addStudentResponse.getBody()).isNotNull();
+        student.setId(addStudentResponse.getBody());
 
-        Assertions.assertThat(getResponse).isNotNull();
-        Assertions.assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Assertions.assertThat(getResponse.getBody()).isNotNull();
-        Assertions.assertThat(getResponse.getBody().getId()).isEqualTo(addedStudent.getId());
-        Assertions.assertThat(getResponse.getBody().getFaculty()).isNotNull();
-        Assertions.assertThat(getResponse.getBody().getFaculty().getId()).isEqualTo(addedFaculty.getId());
+        student.setFaculty(faculty);
+        ResponseEntity<Student> updateResponse = rest.exchange(url + "/update",
+                HttpMethod.PUT, new HttpEntity<>(student), Student.class);
 
-        final String deleteUrl = url + "/" + addedStudent.getId() + "/faculty/reset";
+        Assertions.assertThat(updateResponse).isNotNull();
+        Assertions.assertThat(updateResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(updateResponse.getBody()).isNotNull();
+        Assertions.assertThat(updateResponse.getBody().getId()).isEqualTo(student.getId());
+        Assertions.assertThat(updateResponse.getBody().getFaculty()).isNotNull();
+        Assertions.assertThat(updateResponse.getBody().getFaculty().getId()).isEqualTo(faculty.getId());
 
-        ResponseEntity<Student> resetResponse = rest.exchange(deleteUrl, HttpMethod.PATCH,
-                null, Student.class);
+        rest.exchange(url + "/" + student.getId() + "/faculty/reset",
+                HttpMethod.PATCH, null, Void.class);
 
-        Assertions.assertThat(resetResponse).isNotNull();
-        Assertions.assertThat(resetResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Assertions.assertThat(resetResponse.getBody()).isNotNull();
-        Assertions.assertThat(resetResponse.getBody().getId()).isEqualTo(addedStudent.getId());
-        Assertions.assertThat(resetResponse.getBody().getFaculty()).isNull();
+        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + student.getId(), Student.class);
+        assertResponse(getResponse, student);
     }
 
     @Test
@@ -302,16 +298,16 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
 
         final String url = baseUrl + "/school/student";
 
-        // Попробуем прочитать всех студентов из пустого хранилища.
         final ResponseEntity<Student[]> emptyArrayResponse = rest.getForEntity(url, Student[].class);
 
         Assertions.assertThat(emptyArrayResponse).isNotNull();
         Assertions.assertThat(emptyArrayResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         Assertions.assertThat(emptyArrayResponse.getBody()).isEmpty();
 
-        // Добавим студентов из массива.
         Arrays.stream(students).forEach(student ->
-                rest.postForEntity(url, new HttpEntity<>(createByAnother(student)), Student.class));
+                rest.postForEntity(url + "/add",
+                        new HttpEntity<>(new Student(student).setNew()),
+                        Long.class));
 
         final ResponseEntity<Student[]> arrayResponse = rest.getForEntity(url, Student[].class);
 
@@ -334,13 +330,16 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         }
         final Iterator<Integer> agesIterator = (Arrays.asList(ages)).iterator();
 
-        // Добавим студентов из массива.
         Arrays.stream(students).forEach(student -> {
-            student.setAge(agesIterator.next());
-            rest.postForEntity(url, new HttpEntity<>(createByAnother(student)), Student.class);
+
+            Student newStudent = new Student(student).setNew();
+            newStudent.setAge(agesIterator.next());
+
+            rest.postForEntity(url + "/add",
+                    new HttpEntity<>(newStudent),
+                    Long.class);
         });
 
-        // Найдём студента с указанным возрастом. Он должен быть один.
         final ResponseEntity<Student[]> arrayResponse = rest.getForEntity(url + "/filter/age/" + ages[0],
                 Student[].class);
 
@@ -348,6 +347,13 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         Assertions.assertThat(arrayResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         Assertions.assertThat(arrayResponse.getBody()).isNotEmpty();
         Assertions.assertThat(arrayResponse.getBody()).hasSize(1);
+
+        final ResponseEntity<Student[]> arrayResponseMiss = rest.getForEntity(url + "/filter/age/666",
+                Student[].class);
+
+        Assertions.assertThat(arrayResponseMiss).isNotNull();
+        Assertions.assertThat(arrayResponseMiss.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(arrayResponseMiss.getBody()).isEmpty();
     }
 
     @Test
@@ -363,16 +369,18 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         }
         final Iterator<Integer> agesIterator = (Arrays.asList(ages)).iterator();
 
-        // Добавим студентов из массива.
         Arrays.stream(students).forEach(student -> {
-            student.setAge(agesIterator.next());
-            rest.postForEntity(url, new HttpEntity<>(createByAnother(student)), Student.class);
+
+            Student newStudent = new Student(student).setNew();
+            newStudent.setAge(agesIterator.next());
+
+            rest.postForEntity(url + "/add",
+                    new HttpEntity<>(newStudent),
+                    Long.class);
         });
 
         Assertions.assertThat(students).hasSizeGreaterThan(1);
 
-        // Найдём студентов с указанными границами возраста.
-        // Пусть их будет двое.
         final ResponseEntity<Student[]> arrayResponse = rest.getForEntity(
                 url + "/filter/age/between?fromAge=17&toAge=18", Student[].class);
 
@@ -380,5 +388,12 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         Assertions.assertThat(arrayResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         Assertions.assertThat(arrayResponse.getBody()).isNotEmpty();
         Assertions.assertThat(arrayResponse.getBody()).hasSize(2);
+
+        final ResponseEntity<Student[]> arrayResponseMiss = rest.getForEntity(
+                url + "/filter/age/between?fromAge=666&toAge=800", Student[].class);
+
+        Assertions.assertThat(arrayResponseMiss).isNotNull();
+        Assertions.assertThat(arrayResponseMiss.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(arrayResponseMiss.getBody()).isEmpty();
     }
 }
