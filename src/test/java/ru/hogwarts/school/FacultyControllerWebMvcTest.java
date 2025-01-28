@@ -1,6 +1,7 @@
 package ru.hogwarts.school;
 
 import lombok.RequiredArgsConstructor;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -73,32 +74,26 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
     FacultyController studentController;
 
     @Test
-    @DisplayName("Добавление факультета -> факультет добавлен")
-    void whenAddFaculty_thenReturnsExpectedFaculty() throws Exception {
+    @DisplayName("Добавление факультета -> возвращается id факультета со статусом CREATED")
+    void whenAddFaculty_thenReturnsFacultyId() throws Exception {
 
         final Faculty faculty = faculties[0];
         final String facultyJson = buildJson(faculties[0]);
 
-        // Убедимся, что новый факультет добавляется успешно.
         when(facultyRepository.findById(anyLong())).thenReturn(Optional.empty()); // факультет не существует
         when(facultyRepository.save(any(Faculty.class))).thenReturn(faculty);
-
         mvc.perform(MockMvcRequestBuilders
-                        .post("/faculty")
+                        .post("/faculty/add")
                         .content(facultyJson)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(faculty.getId()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(faculty.getName()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.color").value(faculty.getColor()));
+                        .accept(MediaType.ALL_VALUE))
+                .andExpect(MockMvcResultMatchers.status().isCreated())
+                .andExpect(MockMvcResultMatchers.content()
+                        .string(Matchers.matchesPattern("\\d+")));
 
-        // Попытаемся добавить существующий факультет и
-        // убедимся, что факультет не добавляется.
         when(facultyRepository.findById(anyLong())).thenReturn(Optional.of(faculty)); // факультет уже существует
-
         mvc.perform(MockMvcRequestBuilders
-                        .post("/faculty")
+                        .post("/faculty/add")
                         .content(facultyJson)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -108,14 +103,12 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
     }
 
     @Test
-    @DisplayName("Получение факультета -> факультет получен")
+    @DisplayName("Получение факультета -> факультет получен со статусом OK")
     void whenGetFaculty_thenReturnsExpectedFaculty() throws Exception {
 
         final Faculty faculty = faculties[0];
 
-        // Найдём факультет.
         when(facultyRepository.findById(anyLong())).thenReturn(Optional.of(faculty)); // факультет существует
-
         mvc.perform(MockMvcRequestBuilders
                         .get("/faculty/" + faculty.getId())
                         .accept(MediaType.APPLICATION_JSON))
@@ -124,7 +117,6 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(faculty.getName()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.color").value(faculty.getColor()));
 
-        // Не найдём факультет.
         when(facultyRepository.findById(anyLong())).thenReturn(Optional.empty());
         mvc.perform(MockMvcRequestBuilders
                         .get("/faculty/" + BAD_ID)
@@ -135,7 +127,7 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
     }
 
     @Test
-    @DisplayName("Обновление факультета -> обновлённый факультет получен")
+    @DisplayName("Обновление факультета -> обновлённый факультет получен со статусом OK")
     void whenUpdateFaculty_thenReturnsUpdatedFaculty() throws Exception {
 
         final Faculty faculty = faculties[0];
@@ -146,12 +138,10 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
                 null);
         final String jsonUpdated = buildJson(facultyUpdated);
 
-        // Обновим существующего факультета.
         when(facultyRepository.findById(anyLong())).thenReturn(Optional.of(faculty));
         when(facultyRepository.save(any(Faculty.class))).thenReturn(facultyUpdated);
-
         mvc.perform(MockMvcRequestBuilders
-                        .put("/faculty")
+                        .put("/faculty/update")
                         .content(jsonUpdated)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -160,11 +150,9 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(facultyUpdated.getName()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.color").value(facultyUpdated.getColor()));
 
-        // Обновим несуществующий факультет.
         when(facultyRepository.findById(anyLong())).thenReturn(Optional.empty());
-
         mvc.perform(MockMvcRequestBuilders
-                        .put("/faculty")
+                        .put("/faculty/update")
                         .content(buildJson(facultyUpdated))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -174,27 +162,20 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
     }
 
     @Test
-    @DisplayName("Удаление факультета -> удалённый факультет получен в последний раз")
+    @DisplayName("Удаление факультета -> возвращается статус NO_CONTENT")
     void whenDeleteFaculty_thenReturnsDeletedFaculty() throws Exception {
 
         final Faculty faculty = faculties[0];
 
-        // Удалим существующий факультет.
         when(facultyRepository.findById(anyLong())).thenReturn(Optional.of(faculty));
-
         mvc.perform(MockMvcRequestBuilders
-                        .delete("/faculty/" + faculty.getId())
+                        .delete("/faculty/delete/" + faculty.getId())
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(faculty.getId()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(faculty.getName()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.color").value(faculty.getColor()));
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
 
-        // Удалим несуществующий факультет.
         when(facultyRepository.findById(anyLong())).thenReturn(Optional.empty());
-
         mvc.perform(MockMvcRequestBuilders
-                        .delete("/faculty/" + faculty.getId())
+                        .delete("/faculty/delete/" + faculty.getId())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(result -> assertThat(result.getResolvedException())
@@ -205,19 +186,16 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
     @DisplayName("Поиск факультетов по \"цвету\" -> список факультетов получен")
     void whenFindFacultiesByColor_thenReturnsFacultiesOfColor() throws Exception {
 
-        // Получим список всех факультетов искомого цвета.
         final Faculty[] sameColorFaculties = new Faculty[]{faculties[0], faculties[1]};
-        when(facultyRepository.findByColorIgnoreCase(anyString())).thenReturn(Arrays.asList(sameColorFaculties));
 
+        when(facultyRepository.findByColorIgnoreCase(anyString())).thenReturn(Arrays.asList(sameColorFaculties));
         mvc.perform(MockMvcRequestBuilders
                         .get("/faculty/filter/color?color=" + faculties[0].getColor()) // без разницы
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(sameColorFaculties.length));
 
-        // Получим пустой список факультетов.
         when(facultyRepository.findByColorIgnoreCase(anyString())).thenReturn(Collections.emptyList());
-
         mvc.perform(MockMvcRequestBuilders
                         .get("/faculty/filter/color?color=" + faculties[0].getColor())
                         .accept(MediaType.APPLICATION_JSON))
@@ -229,11 +207,10 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
     @DisplayName("Поиск факультетов по названию или \"цвету\" -> список факультетов получен")
     void whenFindFacultiesByNameOrColor_thenReturnsFaculties() throws Exception {
 
-        // Получим список всех факультетов искомых названия и цвета.
         final Faculty[] wantedFaculties = new Faculty[]{faculties[0], faculties[2]};
+
         when(facultyRepository.findByNameOrColorIgnoreCase(anyString(), anyString()))
                 .thenReturn(Arrays.asList(wantedFaculties));
-
         mvc.perform(MockMvcRequestBuilders
                         .get(String.format("/faculty/filter?name=%s&color=%s", faculties[0].getName(),
                                 faculties[0].getColor()))
@@ -241,10 +218,8 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(wantedFaculties.length));
 
-        // Получим пустой список факультетов.
         when(facultyRepository.findByNameOrColorIgnoreCase(anyString(), anyString()))
                 .thenReturn(Collections.emptyList());
-
         mvc.perform(MockMvcRequestBuilders
                         .get(String.format("/faculty/filter?name=%s&color=%s", faculties[0].getName(),
                                 faculties[0].getColor()))
@@ -257,18 +232,14 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
     @DisplayName("Получение всех факультетов -> полный список факультетов получен")
     void whenGetAllFaculties_thenReturnsAllFaculties() throws Exception {
 
-        // Получим объекты всех факультетов.
         when(facultyRepository.findAll()).thenReturn(Arrays.asList(faculties));
-
         mvc.perform(MockMvcRequestBuilders
                         .get("/faculty")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(faculties.length));
 
-        // Получим пустой список факультетов.
         when(facultyRepository.findAll()).thenReturn(Collections.emptyList());
-
         mvc.perform(MockMvcRequestBuilders
                         .get("/faculty")
                         .accept(MediaType.APPLICATION_JSON))
@@ -294,18 +265,14 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
         }
         faculty.setStudents(members);
 
-        // Получим нужный факультет со списком студентов.
         when(facultyRepository.findById(anyLong())).thenReturn(Optional.of(faculty));
-
         mvc.perform(MockMvcRequestBuilders
                         .get(String.format("/faculty/%d/students", faculty.getId()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(faculties.length));
 
-        // Получим пустой список студентов.
         faculty.getStudents().clear();
-
         mvc.perform(MockMvcRequestBuilders
                         .get(String.format("/faculty/%d/students", faculty.getId()))
                         .accept(MediaType.APPLICATION_JSON))

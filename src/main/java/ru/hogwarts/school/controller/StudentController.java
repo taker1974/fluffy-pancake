@@ -32,7 +32,7 @@ public class StudentController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Добавление нового студента. Возвращает id нового студента")
-    @PostMapping
+    @PostMapping("/add")
     public long addStudent(@RequestBody Student student) {
         return studentService.addStudent(student).getId();
     }
@@ -46,14 +46,14 @@ public class StudentController {
 
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Обновление существующего студента")
-    @PutMapping
+    @PutMapping("/update")
     public Student updateStudent(@RequestBody Student student) {
         return studentService.updateStudent(student);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Удаление существующего студента по id")
-    @DeleteMapping(value = "/{id}")
+    @DeleteMapping(value = "/delete/{id}")
     public void deleteStudent(@PathVariable long id) {
         studentService.deleteStudent(id);
     }

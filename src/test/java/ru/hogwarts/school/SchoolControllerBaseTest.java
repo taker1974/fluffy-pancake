@@ -26,11 +26,11 @@ public abstract class SchoolControllerBaseTest {
     };
 
     public static Student createByAnother(Student student) {
-        return new Student(0L, student.getName(), student.getAge(), null);
+        return new Student(student.getName(), student.getAge());
     }
 
     public static Faculty createByAnother(Faculty faculty) {
-        return new Faculty(0L, faculty.getName(), faculty.getColor(), null);
+        return new Faculty(faculty.getName(), faculty.getColor());
     }
 
     public static Student copyFrom(Student student) {

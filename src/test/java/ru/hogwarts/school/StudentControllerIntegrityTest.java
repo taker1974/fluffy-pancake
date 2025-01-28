@@ -68,24 +68,25 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     }
 
     @Test
-    @DisplayName("Добавление студента -> студент добавлен")
-    void whenAddStudent_thenReturnsExpectedStudent() {
+    @DisplayName("Добавление студента -> возвращается id нового студента")
+    void whenAddStudent_thenReturnsStudentId() {
 
         // Мне удобно, когда в каждом методе перед глазами
         // есть подстрока адреса запроса - так легче не запутаться.
-        final String url = baseUrl + "/school/student";
-        final Student student = createByAnother(students[0]);
+        final String url = baseUrl + "/school/student/add";
+        final Student student = new Student(students[0]).setNew();
 
-        // Добавляем нового студента.
-        ResponseEntity<Student> addResponse = rest.postForEntity(url, new HttpEntity<>(student), Student.class);
+        ResponseEntity<Long> response = rest.postForEntity(url, new HttpEntity<>(student), Long.class);
 
-        assertResponse(addResponse, student);
+        Assertions.assertThat(response).isNotNull();
+        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        Assertions.assertThat(response.getBody()).isNotNull();
 
-        // Пытаемся добавить его ещё раз.
+        student.setId(response.getBody());
         ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url, HttpMethod.POST,
-                new HttpEntity<>(Objects.requireNonNull(addResponse.getBody())), ErrorResponse.class);
+                new HttpEntity<>(Objects.requireNonNull(student)), ErrorResponse.class);
 
-        assertErrorResponse(errorResponse, HttpStatus.BAD_REQUEST, StudentAlreadyExistsException.CODE);
+        assertErrorResponse(errorResponse, HttpStatus.CONFLICT, StudentAlreadyExistsException.CODE);
     }
 
     @Test
@@ -93,18 +94,17 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     void whenGetStudent_thenReturnsExpectedStudent() {
 
         final String url = baseUrl + "/school/student";
-        final Student student = createByAnother(students[0]);
+        final Student student = new Student(students[0]).setNew();
 
-        // Добавляем и получаем нового студента.
-        ResponseEntity<Student> addResponse = rest.postForEntity(url, new HttpEntity<>(student), Student.class);
-        final long id = Objects.requireNonNull(addResponse.getBody()).getId();
+        ResponseEntity<Long> addResponse = rest.postForEntity(url + "/add", new HttpEntity<>(student), Long.class);
+        Assertions.assertThat(addResponse).isNotNull();
+        Assertions.assertThat(addResponse.getBody()).isNotNull();
 
-        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + id, Student.class);
+        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + addResponse.getBody(), Student.class);
         assertResponse(getResponse, student);
 
-        // Пробуем читать несуществующего студента.
         ResponseEntity<ErrorResponse> errorResponse = rest.getForEntity(url + "/" + BAD_ID, ErrorResponse.class);
-        assertErrorResponse(errorResponse, HttpStatus.BAD_REQUEST, StudentNotFoundException.CODE);
+        assertErrorResponse(errorResponse, HttpStatus.NOT_FOUND, StudentNotFoundException.CODE);
     }
 
     @Test
@@ -112,54 +112,54 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     void whenUpdateStudent_thenReturnsUpdatedStudent() {
 
         final String url = baseUrl + "/school/student";
-        final Student student = createByAnother(students[0]);
+        final Student student = new Student(students[0]).setNew();
 
-        // Добавляем нового студента.
-        ResponseEntity<Student> addResponse = rest.postForEntity(url, new HttpEntity<>(student), Student.class);
-        Student addedStudent = Objects.requireNonNull(addResponse.getBody());
+        ResponseEntity<Long> addResponse = rest.postForEntity(url + "/add", new HttpEntity<>(student), Long.class);
+        Assertions.assertThat(addResponse).isNotNull();
+        Assertions.assertThat(addResponse.getBody()).isNotNull();
 
-        // Обновим того же студента.
-        final Student updatedStudent = copyFrom(addedStudent);
+        student.setId(addResponse.getBody());
+
+        final Student updatedStudent = new Student(student);
         updatedStudent.setName(student.getName() + " +50% for free!");
         updatedStudent.setAge(student.getAge() + 2);
 
-        rest.exchange(url, HttpMethod.PUT, new HttpEntity<>(updatedStudent), Student.class);
+        rest.exchange(url + "/update", HttpMethod.PUT, new HttpEntity<>(updatedStudent), Student.class);
 
-        // Прочитаем его и проверим.
-        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + addedStudent.getId(), Student.class);
+        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + updatedStudent.getId(), Student.class);
 
         assertResponse(getResponse, updatedStudent);
 
-        // Пытаемся обновить несуществующего студента.
         updatedStudent.setId(BAD_ID);
-        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url, HttpMethod.PUT,
+        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url + "/update", HttpMethod.PUT,
                 new HttpEntity<>(updatedStudent), ErrorResponse.class);
 
-        assertErrorResponse(errorResponse, HttpStatus.BAD_REQUEST, StudentNotFoundException.CODE);
+        assertErrorResponse(errorResponse, HttpStatus.NOT_FOUND, StudentNotFoundException.CODE);
     }
 
     @Test
-    @DisplayName("Удаление студента -> удалённый студент получен в последний раз")
-    void whenDeleteStudent_thenReturnsDeletedStudent() {
+    @DisplayName("Удаление студента -> возвращается статус NO_CONTENT")
+    void whenDeleteStudent_thenReturnsStatusNoContent() {
 
         final String url = baseUrl + "/school/student";
-        final Student student = createByAnother(students[0]);
+        final Student student = new Student(students[0]).setNew();
 
-        // Добавляем нового студента.
-        ResponseEntity<Student> addResponse = rest.postForEntity(url, new HttpEntity<>(student), Student.class);
-        Student addedStudent = Objects.requireNonNull(addResponse.getBody());
+        ResponseEntity<Long> addResponse = rest.postForEntity(url + "/add", new HttpEntity<>(student), Long.class);
+        Assertions.assertThat(addResponse).isNotNull();
+        Assertions.assertThat(addResponse.getBody()).isNotNull();
 
-        // Удаляем его.
-        ResponseEntity<Student> deleteResponse = rest.exchange(url + "/" + addedStudent.getId(),
-                HttpMethod.DELETE, null, Student.class);
+        student.setId(addResponse.getBody());
 
-        assertResponse(deleteResponse, addedStudent);
+        ResponseEntity<Void> deleteResponse = rest.exchange(url + "/delete/" + student.getId(),
+                HttpMethod.DELETE, null, Void.class);
 
-        // Пытаемся удалить несуществующего студента.
-        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url + "/" + addedStudent.getId(),
+        Assertions.assertThat(deleteResponse).isNotNull();
+        Assertions.assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url + "/delete/" + student.getId(),
                 HttpMethod.DELETE, null, ErrorResponse.class);
 
-        assertErrorResponse(errorResponse, HttpStatus.BAD_REQUEST, StudentNotFoundException.CODE);
+        assertErrorResponse(errorResponse, HttpStatus.NOT_FOUND, StudentNotFoundException.CODE);
     }
 
     @Test

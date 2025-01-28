@@ -30,7 +30,7 @@ public class FacultyController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Добавление нового факультета. Возвращает id нового факультета")
-    @PostMapping
+    @PostMapping("/add")
     public long addFaculty(@RequestBody Faculty faculty) {
         return facultyService.addFaculty(faculty).getId();
     }
@@ -44,14 +44,14 @@ public class FacultyController {
 
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Обновление существующего факультета")
-    @PutMapping
+    @PutMapping("/update")
     public Faculty updateFaculty(@RequestBody Faculty faculty) {
         return facultyService.updateFaculty(faculty);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Удаление существующего факультета")
-    @DeleteMapping(value = "/{id}")
+    @DeleteMapping(value = "/delete/{id}")
     public void deleteFaculty(@PathVariable long id) {
         facultyService.deleteFaculty(id);
     }

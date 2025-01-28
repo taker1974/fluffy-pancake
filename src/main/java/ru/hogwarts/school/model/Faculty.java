@@ -29,4 +29,12 @@ public class Faculty {
     @OneToMany(mappedBy = "faculty")
     @JsonIgnore
     private Set<Student> students;
+
+    public Faculty(String name, String color) {
+        this.name = name;
+        this.color = color;
+
+        id = 0;
+        students = null;
+    }
 }

@@ -27,4 +27,24 @@ public class Student {
     @ManyToOne
     @JoinColumn(name = "faculty_id")
     private Faculty faculty;
+
+    public Student(Student student) {
+        this.id = student.getId();
+        this.name = student.getName();
+        this.age = student.getAge();
+        this.faculty = student.getFaculty();
+    }
+
+    public Student(String name, int age) {
+        this.name = name;
+        this.age = age;
+        id = 0;
+        faculty = null;
+    }
+
+    public Student setNew() {
+        id = 0;
+        faculty = null;
+        return this;
+    }
 }

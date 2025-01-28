@@ -3,9 +3,9 @@ package ru.hogwarts.school.controller.advice;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import ru.hogwarts.school.dto.ErrorResponse;
 import ru.hogwarts.school.exception.faculty.BadFacultyColorException;
 import ru.hogwarts.school.exception.faculty.BadFacultyNameException;
@@ -13,39 +13,37 @@ import ru.hogwarts.school.exception.faculty.FacultyAlreadyExistsException;
 import ru.hogwarts.school.exception.faculty.FacultyNotFoundException;
 import ru.hogwarts.school.exception.faculty.NullFacultyException;
 
-import java.util.Arrays;
-
 @ControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class FacultyControllerAdvice extends AbstractBaseControllerAdvice {
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BadFacultyColorException.class)
-    public ErrorResponse handleBadFacultyColorException(BadFacultyColorException e) {
-        return new ErrorResponse(BadFacultyColorException.CODE, e.getMessage());
+    public ResponseEntity<ErrorResponse> handleBadFacultyColorException(BadFacultyColorException e) {
+        return new ResponseEntity<>(new ErrorResponse(BadFacultyColorException.CODE, e.getMessage()),
+                HttpStatus.NOT_ACCEPTABLE);
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BadFacultyNameException.class)
-    public ErrorResponse handleBadFacultyNameException(BadFacultyNameException e) {
-        return new ErrorResponse(BadFacultyNameException.CODE, e.getMessage());
+    public ResponseEntity<ErrorResponse> handleBadFacultyNameException(BadFacultyNameException e) {
+        return new ResponseEntity<>(new ErrorResponse(BadFacultyNameException.CODE, e.getMessage()),
+                HttpStatus.NOT_ACCEPTABLE);
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(FacultyAlreadyExistsException.class)
-    public ErrorResponse handleFacultyNotFoundException(FacultyAlreadyExistsException e) {
-        return new ErrorResponse(FacultyAlreadyExistsException.CODE, e.getMessage());
+    public ResponseEntity<ErrorResponse> handleFacultyAlreadyExistsException(FacultyAlreadyExistsException e) {
+        return new ResponseEntity<>(new ErrorResponse(FacultyAlreadyExistsException.CODE, e.getMessage()),
+                HttpStatus.CONFLICT);
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(FacultyNotFoundException.class)
-    public ErrorResponse handleFacultyNotFoundException(FacultyNotFoundException e) {
-        return new ErrorResponse(FacultyNotFoundException.CODE, e.getMessage());
+    public ResponseEntity<ErrorResponse> handleFacultyNotFoundException(FacultyNotFoundException e) {
+        return new ResponseEntity<>(new ErrorResponse(FacultyNotFoundException.CODE, e.getMessage()),
+                HttpStatus.NOT_FOUND);
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(NullFacultyException.class)
-    public ErrorResponse handleNullFacultyException(NullFacultyException e) {
-        return new ErrorResponse(NullFacultyException.CODE, e.getMessage());
+    public ResponseEntity<ErrorResponse> handleNullFacultyException(NullFacultyException e) {
+        return new ResponseEntity<>(new ErrorResponse(NullFacultyException.CODE, e.getMessage()),
+                HttpStatus.BAD_REQUEST);
     }
 }

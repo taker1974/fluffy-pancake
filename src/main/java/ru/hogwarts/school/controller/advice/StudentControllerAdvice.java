@@ -3,9 +3,9 @@ package ru.hogwarts.school.controller.advice;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import ru.hogwarts.school.dto.ErrorResponse;
 import ru.hogwarts.school.exception.student.BadStudentAgeException;
 import ru.hogwarts.school.exception.student.BadStudentNameException;
@@ -17,33 +17,40 @@ import ru.hogwarts.school.exception.student.StudentNotFoundException;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class StudentControllerAdvice extends AbstractBaseControllerAdvice {
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BadStudentAgeException.class)
-    public ErrorResponse handleBadStudentAgeException(BadStudentAgeException e) {
-        return new ErrorResponse(BadStudentAgeException.CODE, e.getMessage());
+    public ResponseEntity<ErrorResponse> handleBadStudentAgeException(BadStudentAgeException e) {
+        return new ResponseEntity<>(new ErrorResponse(BadStudentAgeException.CODE, e.getMessage()),
+                HttpStatus.NOT_ACCEPTABLE);
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BadStudentNameException.class)
-    public ErrorResponse handleBadStudentNameException(BadStudentNameException e) {
-        return new ErrorResponse(BadStudentNameException.CODE, e.getMessage());
+    public ResponseEntity<ErrorResponse> handleBadStudentNameException(BadStudentNameException e) {
+        return new ResponseEntity<>(new ErrorResponse(BadStudentNameException.CODE, e.getMessage()),
+                HttpStatus.NOT_ACCEPTABLE);
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(NullStudentException.class)
-    public ErrorResponse handleNullStudentException(NullStudentException e) {
-        return new ErrorResponse(NullStudentException.CODE, e.getMessage());
+    public ResponseEntity<ErrorResponse> handleNullStudentException(NullStudentException e) {
+        return new ResponseEntity<>(new ErrorResponse(NullStudentException.CODE, e.getMessage()),
+                HttpStatus.BAD_REQUEST);
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(StudentAlreadyExistsException.class)
-    public ErrorResponse handleStudentAlreadyExistsException(StudentAlreadyExistsException e) {
-        return new ErrorResponse(StudentAlreadyExistsException.CODE, e.getMessage());
+    public ResponseEntity<ErrorResponse> handleStudentAlreadyExistsException(StudentAlreadyExistsException e) {
+        return new ResponseEntity<>(new ErrorResponse(StudentAlreadyExistsException.CODE, e.getMessage()),
+                HttpStatus.CONFLICT);
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    // Это не работает - возникает зацикливание на представлении
+//    @ResponseStatus(HttpStatus.CONFLICT)
+//    @ExceptionHandler(StudentAlreadyExistsException.class)
+//    public ErrorResponse handleStudentAlreadyExistsException(StudentAlreadyExistsException e) {
+//        return new ErrorResponse(StudentAlreadyExistsException.CODE, e.getMessage());
+//    }
+
     @ExceptionHandler(StudentNotFoundException.class)
-    public ErrorResponse handleStudentNotFoundException(StudentNotFoundException e) {
-        return new ErrorResponse(StudentNotFoundException.CODE, e.getMessage());
+    public ResponseEntity<ErrorResponse> handleStudentNotFoundException(StudentNotFoundException e) {
+        return new ResponseEntity<>(new ErrorResponse(StudentNotFoundException.CODE, e.getMessage()),
+                HttpStatus.NOT_FOUND);
     }
 }

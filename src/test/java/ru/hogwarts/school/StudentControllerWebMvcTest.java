@@ -1,7 +1,7 @@
 package ru.hogwarts.school;
 
 import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.Assertions;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -14,7 +14,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.hogwarts.school.controller.StudentController;
@@ -31,7 +30,6 @@ import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.service.FacultyService;
 import ru.hogwarts.school.service.StudentService;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -96,43 +94,41 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
     StudentController studentController;
 
     @Test
-    @DisplayName("Добавление студента -> студент добавлен")
+    @DisplayName("Добавление студента -> возвращается id студента со статусом CREATED")
     void whenAddStudent_thenReturnsStudentId() throws Exception {
 
-        final Student student = students[0];
+        final Student student1 = students[0];
         final String studentJson = buildJson(students[0]);
 
         when(studentRepository.findById(anyLong())).thenReturn(Optional.empty()); // студент не существует
-        when(studentRepository.save(any(Student.class))).thenReturn(student);
-
+        when(studentRepository.save(any(Student.class))).thenReturn(student1);
         mvc.perform(MockMvcRequestBuilders
-                        .post("/student")
+                        .post("/student/add")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(studentJson)
+                        .accept(MediaType.ALL_VALUE))
+                .andExpect(MockMvcResultMatchers.status().isCreated())
+                .andExpect(MockMvcResultMatchers.content()
+                        .string(Matchers.matchesPattern("\\d+")));
+
+        when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student1)); // студент уже существует
+        mvc.perform(MockMvcRequestBuilders
+                        .post("/student/add")
                         .content(studentJson)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(student.getId()));
-
-        when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student)); // студент уже существует
-
-        mvc.perform(MockMvcRequestBuilders
-                        .post("/student")
-                        .content(studentJson)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.ALL_VALUE))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(result -> assertThat(result.getResolvedException())
                         .isInstanceOf(StudentAlreadyExistsException.class));
     }
 
     @Test
-    @DisplayName("Получение студента -> студент получен")
-    void whenGetStudent_thenReturnsExpectedStudent() throws Exception {
+    @DisplayName("Получение студента -> студент получен со статусом OK")
+    void whenGetStudent_thenReturnsStudent() throws Exception {
 
         final Student student = students[0];
 
         when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student)); // студент есть
-
         mvc.perform(MockMvcRequestBuilders
                         .get("/student/" + student.getId())
                         .accept(MediaType.APPLICATION_JSON))
@@ -151,7 +147,7 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
     }
 
     @Test
-    @DisplayName("Обновление студента -> обновлённый студент получен")
+    @DisplayName("Обновление студента -> обновлённый студент получен со статусом OK")
     void whenUpdateStudent_thenReturnsUpdatedStudent() throws Exception {
 
         final Student student = students[0];
@@ -164,9 +160,8 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
 
         when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student));
         when(studentRepository.save(any(Student.class))).thenReturn(studentUpdated);
-
         mvc.perform(MockMvcRequestBuilders
-                        .put("/student")
+                        .put("/student/update")
                         .content(jsonUpdated)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -176,9 +171,8 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.age").value(studentUpdated.getAge()));
 
         when(studentRepository.findById(anyLong())).thenReturn(Optional.empty());
-
         mvc.perform(MockMvcRequestBuilders
-                        .put("/student")
+                        .put("/student/update")
                         .content(buildJson(studentUpdated))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -188,27 +182,20 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
     }
 
     @Test
-    @DisplayName("Удаление студента -> удалённый студент получен в последний раз")
-    void whenDeleteStudent_thenReturnsDeletedStudent() throws Exception {
+    @DisplayName("Удаление студента -> возвращается статус NO_CONTENT")
+    void whenDeleteStudent_thenReturnsStatusNoContent() throws Exception {
 
         final Student student = students[0];
 
-        // Удалим существующего студента.
         when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student));
-
         mvc.perform(MockMvcRequestBuilders
-                        .delete("/student/" + student.getId())
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(student.getId()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(student.getName()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.age").value(student.getAge()));
+                        .delete("/student/delete/" + student.getId())
+                        .accept(MediaType.ALL_VALUE))
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
 
-        // Удалим несуществующего студента.
         when(studentRepository.findById(anyLong())).thenReturn(Optional.empty());
-
         mvc.perform(MockMvcRequestBuilders
-                        .delete("/student/" + student.getId())
+                        .delete("/student/delete/" + student.getId())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(result -> assertThat(result.getResolvedException())
@@ -216,34 +203,25 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
     }
 
     @Test
-    @DisplayName("Установка факультета -> студент с установленным факультетом получен")
-    void whenSetFaculty_thenReturnsStudent() throws Exception {
+    @DisplayName("Установка факультета -> возвращается статус OK")
+    void whenSetFaculty_thenReturnsStatusOk() throws Exception {
 
         final Student student = students[0];
         student.setFaculty(null);
         final Faculty faculty = new Faculty(900, "Факультет 1", "Вечно синие", null);
 
-        // Установим факультет по id.
         when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student));
         when(facultyRepository.findById(anyLong())).thenReturn(Optional.of(faculty));
-
-        // почему в этом случае я не вижу $.id и $.name?
-        // какой метод лучше применять, если я меняю объект частично
-        // через запрос по адресу типа /student/{studentId}/faculty/{facultyId}?
-
         mvc.perform(MockMvcRequestBuilders
-                        .request(HttpMethod.PATCH, String.format("/student/%d/faculty/%d", student.getId(),
-                                faculty.getId()))
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andDo(this::handleResult);
+                        .request(HttpMethod.PATCH,
+                                String.format("/student/%d/faculty/%d", student.getId(), faculty.getId()))
+                        .accept(MediaType.ALL_VALUE))
+                .andExpect(MockMvcResultMatchers.status().isOk());
 
-        // Получим ошибку.
         when(facultyRepository.findById(anyLong())).thenReturn(Optional.empty());
-
         mvc.perform(MockMvcRequestBuilders
-                        .request(HttpMethod.PATCH, String.format("/student/%d/faculty/%d", student.getId(),
-                                faculty.getId())) // не важно
+                        .request(HttpMethod.PATCH,
+                                String.format("/student/%d/faculty/%d", student.getId(), faculty.getId()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(result -> assertThat(result.getResolvedException())
@@ -251,34 +229,28 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
     }
 
     @Test
-    @DisplayName("Получение факультета -> факультет получен")
+    @DisplayName("Получение факультета студента по id студента -> факультет получен")
     void whenGetFaculty_thenReturnsFaculty() throws Exception {
 
         final Student student = students[0];
         final var set = new HashSet<>(List.of(student));
         student.setFaculty(new Faculty(1, "Факультет 1", "Вечно синие", set));
 
-        // Получим объект факультета.
         when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student));
-
         mvc.perform(MockMvcRequestBuilders
                         .get(String.format("/student/%d/faculty", student.getId()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(student.getFaculty().getName()));
 
-        // Не получим факультет потому, что он не установлен.
         student.setFaculty(null);
-
         mvc.perform(MockMvcRequestBuilders
                         .get(String.format("/student/%d/faculty", student.getId()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.name").doesNotExist());
+                .andExpect(MockMvcResultMatchers.jsonPath("$.faculty.name").doesNotExist());
 
-        // Получим ошибку.
         when(studentRepository.findById(anyLong())).thenReturn(Optional.empty());
-
         mvc.perform(MockMvcRequestBuilders
                         .get(String.format("/student/%d/faculty", BAD_ID))
                         .accept(MediaType.APPLICATION_JSON))
@@ -288,35 +260,28 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
     }
 
     @Test
-    @DisplayName("Сброс факультета -> обновлённый студент получен")
-    void whenResetFaculty_thenReturnsStudent() throws Exception {
+    @DisplayName("Сброс факультета -> возвращается статус OK")
+    void whenResetFaculty_thenReturnsStatusOk() throws Exception {
 
         final Student student = students[0];
         final var set = new HashSet<>(List.of(student));
 
         student.setFaculty(new Faculty(1, "Факультет 1", "Вечно синие", set));
 
-        // Получим объект факультета.
         when(studentRepository.findById(anyLong())).thenReturn(Optional.of(student));
-
         mvc.perform(MockMvcRequestBuilders
                         .request(HttpMethod.PATCH, String.format("/student/%d/faculty/reset", student.getId()))
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andDo(this::handleResult);
+                        .accept(MediaType.ALL_VALUE))
+                .andExpect(MockMvcResultMatchers.status().isOk());
 
-        // Не получим факультет потому, что он не установлен.
         student.setFaculty(null);
-
         mvc.perform(MockMvcRequestBuilders
                         .request(HttpMethod.PATCH, String.format("/student/%d/faculty/reset", student.getId()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.faculty.name").doesNotExist());
 
-        // Получим ошибку (не найдём студента).
         when(studentRepository.findById(anyLong())).thenReturn(Optional.empty());
-
         mvc.perform(MockMvcRequestBuilders
                         .request(HttpMethod.PATCH, String.format("/student/%d/faculty/reset", BAD_ID))
                         .accept(MediaType.APPLICATION_JSON))
@@ -329,18 +294,14 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
     @DisplayName("Получение всех студентов -> полный список студентов получен")
     void whenGetAllStudents_thenReturnsAllStudents() throws Exception {
 
-        // Получим объекты всех студентов.
         when(studentRepository.findAll()).thenReturn(Arrays.asList(students));
-
         mvc.perform(MockMvcRequestBuilders
                         .get("/student")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(students.length));
 
-        // Получим пустой список студентов.
         when(studentRepository.findAll()).thenReturn(Collections.emptyList());
-
         mvc.perform(MockMvcRequestBuilders
                         .get("/student")
                         .accept(MediaType.APPLICATION_JSON))
@@ -352,19 +313,16 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
     @DisplayName("Поиск студентов по точному возрасту -> список студентов получен")
     void whenFindStudentsByAge_thenReturnsStudentsOfAge() throws Exception {
 
-        // Получим список всех студентов искомого возраста.
         final Student[] sameAgeStudents = new Student[]{students[0], students[1]};
-        when(studentRepository.findByAge(anyInt())).thenReturn(Arrays.asList(sameAgeStudents));
 
+        when(studentRepository.findByAge(anyInt())).thenReturn(Arrays.asList(sameAgeStudents));
         mvc.perform(MockMvcRequestBuilders
                         .get("/student/filter/age/" + students[0].getAge())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(sameAgeStudents.length));
 
-        // Получим пустой список студентов.
         when(studentRepository.findByAge(anyInt())).thenReturn(Collections.emptyList());
-
         mvc.perform(MockMvcRequestBuilders
                         .get("/student/filter/age/" + students[0].getAge())
                         .accept(MediaType.APPLICATION_JSON))
@@ -376,35 +334,20 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
     @DisplayName("Поиск студентов по диапазону возраста -> список студентов получен")
     void whenFindStudentsByAgeBetween_thenReturnsStudentsOfAgeRange() throws Exception {
 
-        // Получим список студентов по диапазону возраста.
         final Student[] ageInRangeStudents = new Student[]{students[1], students[2]};
-        when(studentRepository.findByAgeBetween(anyInt(), anyInt())).thenReturn(Arrays.asList(ageInRangeStudents));
 
+        when(studentRepository.findByAgeBetween(anyInt(), anyInt())).thenReturn(Arrays.asList(ageInRangeStudents));
         mvc.perform(MockMvcRequestBuilders
                         .get("/student/filter/age/between?fromAge=23&toAge=28") // без разницы
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(ageInRangeStudents.length));
 
-        // Получим пустой список студентов.
         when(studentRepository.findByAgeBetween(anyInt(), anyInt())).thenReturn(Collections.emptyList());
-
         mvc.perform(MockMvcRequestBuilders
                         .get("/student/filter/age/between?fromAge=23&toAge=28") // без разницы
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(0));
-    }
-
-    private void handleResult(MvcResult result) {
-        try {
-            final var response = result.getResponse();
-            final var contentType = response.getContentType();
-            final var content = response.getContentAsString();
-
-            System.out.printf("Content type: %s;%nContent: %s%n", contentType, content);
-        } catch (IOException e) {
-            Assertions.fail();
-        }
     }
 }

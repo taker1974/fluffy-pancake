@@ -134,6 +134,14 @@
             <version>2.24.3</version>
         </dependency>
 
+        <!-- Этот процессор представлений решает эту проблему "circular view path error".-->
+        <!-- См. StudentController, long addStudent() - в тестах будет ошибка циклической ссылки-->
+        <!-- при повторном добавлении студента.-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
