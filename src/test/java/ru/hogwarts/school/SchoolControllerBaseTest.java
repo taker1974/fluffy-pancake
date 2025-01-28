@@ -25,22 +25,6 @@ public abstract class SchoolControllerBaseTest {
             new Faculty(0, "Faculty of Arts", "Smoky Brown", null)
     };
 
-    public static Student createByAnother(Student student) {
-        return new Student(student.getName(), student.getAge());
-    }
-
-    public static Faculty createByAnother(Faculty faculty) {
-        return new Faculty(faculty.getName(), faculty.getColor());
-    }
-
-    public static Student copyFrom(Student student) {
-        return new Student(student.getId(), student.getName(), student.getAge(), student.getFaculty());
-    }
-
-    public static Faculty copyFrom(Faculty faculty) {
-        return new Faculty(faculty.getId(), faculty.getName(), faculty.getColor(), null);
-    }
-
     public static String buildJson(Student student) {
         try {
             return new JSONObject()
