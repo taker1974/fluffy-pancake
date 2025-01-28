@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import ru.hogwarts.school.dto.ErrorResponse;
 import ru.hogwarts.school.exception.student.BadStudentAgeException;
 import ru.hogwarts.school.exception.student.BadStudentNameException;
@@ -18,40 +17,35 @@ import ru.hogwarts.school.exception.student.StudentNotFoundException;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class StudentControllerAdvice extends AbstractBaseControllerAdvice {
 
+    @SuppressWarnings("unused")
     @ExceptionHandler(BadStudentAgeException.class)
     public ResponseEntity<ErrorResponse> handleBadStudentAgeException(BadStudentAgeException e) {
         return new ResponseEntity<>(new ErrorResponse(BadStudentAgeException.CODE, e.getMessage()),
                 HttpStatus.NOT_ACCEPTABLE);
     }
 
+    @SuppressWarnings("unused")
     @ExceptionHandler(BadStudentNameException.class)
     public ResponseEntity<ErrorResponse> handleBadStudentNameException(BadStudentNameException e) {
         return new ResponseEntity<>(new ErrorResponse(BadStudentNameException.CODE, e.getMessage()),
                 HttpStatus.NOT_ACCEPTABLE);
     }
 
+    @SuppressWarnings("unused")
     @ExceptionHandler(NullStudentException.class)
     public ResponseEntity<ErrorResponse> handleNullStudentException(NullStudentException e) {
         return new ResponseEntity<>(new ErrorResponse(NullStudentException.CODE, e.getMessage()),
                 HttpStatus.BAD_REQUEST);
     }
 
+    @SuppressWarnings("unused")
     @ExceptionHandler(StudentAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleStudentAlreadyExistsException(StudentAlreadyExistsException e) {
         return new ResponseEntity<>(new ErrorResponse(StudentAlreadyExistsException.CODE, e.getMessage()),
                 HttpStatus.CONFLICT);
     }
 
-    // TODO Решить, как оптимально организовывать перехват исключений в плане возвращаемых данных.
-//    // Это не работает:
-//    // - возникает зацикливание на представлении без запрета white page;
-//    // - ничего не возвращается с запретом white page.
-//    @ResponseStatus(HttpStatus.CONFLICT)
-//    @ExceptionHandler(StudentAlreadyExistsException.class)
-//    public ErrorResponse handleStudentAlreadyExistsException(StudentAlreadyExistsException e) {
-//        return new ErrorResponse(StudentAlreadyExistsException.CODE, e.getMessage());
-//    }
-
+    @SuppressWarnings("unused")
     @ExceptionHandler(StudentNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleStudentNotFoundException(StudentNotFoundException e) {
         return new ResponseEntity<>(new ErrorResponse(StudentNotFoundException.CODE, e.getMessage()),

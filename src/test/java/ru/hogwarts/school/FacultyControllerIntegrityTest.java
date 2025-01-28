@@ -37,8 +37,6 @@ class FacultyControllerIntegrityTest extends SchoolControllerBaseTest {
 
     private final String baseUrl;
 
-    // Какую роль здесь играет @Autowired? (Без этого не работает.)
-
     FacultyControllerIntegrityTest(@LocalServerPort int port,
                                    @Autowired FacultyRepository facultyRepository,
                                    @Autowired StudentRepository studentRepository,
@@ -68,24 +66,23 @@ class FacultyControllerIntegrityTest extends SchoolControllerBaseTest {
     }
 
     @Test
-    @DisplayName("Добавление факультета -> факультет добавлен")
-    void whenAddFaculty_thenReturnsExpectedFaculty() {
+    @DisplayName("Добавление факультета -> возвращается id факультета")
+    void whenAddFaculty_thenReturnsFacultyId() {
 
-        // Мне удобно, когда в каждом методе перед глазами
-        // есть подстрока адреса запроса - так легче не запутаться.
-        final String url = baseUrl + "/school/faculty";
-        final Faculty faculty = createByAnother(faculties[0]);
+        final String url = baseUrl + "/school/faculty/add";
+        final Faculty faculty = new Faculty(faculties[0]).setNew();
 
-        // Добавляем новый факультет.
-        ResponseEntity<Faculty> addResponse = rest.postForEntity(url, new HttpEntity<>(faculty), Faculty.class);
+        ResponseEntity<Long> addResponse = rest.postForEntity(url, new HttpEntity<>(faculty), Long.class);
 
-        assertResponse(addResponse, faculty);
+        Assertions.assertThat(addResponse).isNotNull();
+        Assertions.assertThat(addResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        Assertions.assertThat(addResponse.getBody()).isNotNull();
 
-        // Пытаемся добавить его ещё раз.
+        faculty.setId(addResponse.getBody());
         ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url, HttpMethod.POST,
-                new HttpEntity<>(Objects.requireNonNull(addResponse.getBody())), ErrorResponse.class);
+                new HttpEntity<>(Objects.requireNonNull(faculty)), ErrorResponse.class);
 
-        assertErrorResponse(errorResponse, HttpStatus.BAD_REQUEST, FacultyAlreadyExistsException.CODE);
+        assertErrorResponse(errorResponse, HttpStatus.CONFLICT, FacultyAlreadyExistsException.CODE);
     }
 
     @Test
@@ -93,18 +90,19 @@ class FacultyControllerIntegrityTest extends SchoolControllerBaseTest {
     void whenGetFaculty_thenReturnsExpectedFaculty() {
 
         final String url = baseUrl + "/school/faculty";
-        final Faculty faculty = createByAnother(faculties[0]);
+        final Faculty faculty = new Faculty(faculties[0]).setNew();
 
-        // Добавляем и получаем новый факультет.
-        ResponseEntity<Faculty> addResponse = rest.postForEntity(url, new HttpEntity<>(faculty), Faculty.class);
-        final long id = Objects.requireNonNull(addResponse.getBody()).getId();
+        ResponseEntity<Long> addResponse = rest.postForEntity(url + "/add", new HttpEntity<>(faculty), Long.class);
+        Assertions.assertThat(addResponse).isNotNull();
+        Assertions.assertThat(addResponse.getBody()).isNotNull();
 
-        ResponseEntity<Faculty> getResponse = rest.getForEntity(url + "/" + id, Faculty.class);
+        faculty.setId(addResponse.getBody());
+
+        ResponseEntity<Faculty> getResponse = rest.getForEntity(url + "/" + faculty.getId(), Faculty.class);
         assertResponse(getResponse, faculty);
 
-        // Пробуем читать несуществующий факультет.
         ResponseEntity<ErrorResponse> errorResponse = rest.getForEntity(url + "/" + BAD_ID, ErrorResponse.class);
-        assertErrorResponse(errorResponse, HttpStatus.BAD_REQUEST, FacultyNotFoundException.CODE);
+        assertErrorResponse(errorResponse, HttpStatus.NOT_FOUND, FacultyNotFoundException.CODE);
     }
 
     @Test
@@ -112,54 +110,54 @@ class FacultyControllerIntegrityTest extends SchoolControllerBaseTest {
     void whenUpdateFaculty_thenReturnsUpdatedFaculty() {
 
         final String url = baseUrl + "/school/faculty";
-        final Faculty faculty = createByAnother(faculties[0]);
+        final Faculty faculty = new Faculty(faculties[0]).setNew();
 
-        // Добавляем новый факультет.
-        ResponseEntity<Faculty> addResponse = rest.postForEntity(url, new HttpEntity<>(faculty), Faculty.class);
-        Faculty addedFaculty = Objects.requireNonNull(addResponse.getBody());
+        ResponseEntity<Long> addResponse = rest.postForEntity(url + "/add", new HttpEntity<>(faculty), Long.class);
+        Assertions.assertThat(addResponse).isNotNull();
+        Assertions.assertThat(addResponse.getBody()).isNotNull();
 
-        // Обновим того же студента.
-        final Faculty updatedFaculty = copyFrom(addedFaculty);
-        updatedFaculty.setName(faculty.getName() + " +50% for free!");
-        updatedFaculty.setColor(faculty.getColor() + " and Mostly Red!");
+        faculty.setId(addResponse.getBody());
 
-        rest.exchange(url, HttpMethod.PUT, new HttpEntity<>(updatedFaculty), Faculty.class);
+        ResponseEntity<Faculty> getResponse = rest.getForEntity(url + "/" + faculty.getId(), Faculty.class);
+        assertResponse(getResponse, faculty);
 
-        // Прочитаем его и проверим.
-        ResponseEntity<Faculty> getResponse = rest.getForEntity(url + "/" + addedFaculty.getId(), Faculty.class);
+        faculty.setName(faculty.getName() + " +50% for free!");
+        rest.exchange(url + "/update", HttpMethod.PUT, new HttpEntity<>(faculty), Faculty.class);
 
-        assertResponse(getResponse, updatedFaculty);
+        ResponseEntity<Faculty> updatedResponse = rest.getForEntity(url + "/" + faculty.getId(), Faculty.class);
+        assertResponse(updatedResponse, faculty);
 
-        // Пытаемся обновить несуществующего студента.
-        updatedFaculty.setId(BAD_ID);
-        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url, HttpMethod.PUT,
-                new HttpEntity<>(updatedFaculty), ErrorResponse.class);
-
-        assertErrorResponse(errorResponse, HttpStatus.BAD_REQUEST, FacultyNotFoundException.CODE);
+        faculty.setId(BAD_ID);
+        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url + "/update", HttpMethod.PUT,
+                new HttpEntity<>(faculty), ErrorResponse.class);
+        assertErrorResponse(errorResponse, HttpStatus.NOT_FOUND, FacultyNotFoundException.CODE);
     }
 
     @Test
-    @DisplayName("Удаление факультета -> удалённый факультет получен в последний раз")
-    void whenDeleteFaculty_thenReturnsDeletedFaculty() {
+    @DisplayName("Удаление факультета -> возвращается статус NO_CONTENT")
+    void whenDeleteFaculty_thenReturnsStatusNoContent() {
 
         final String url = baseUrl + "/school/faculty";
-        final Faculty faculty = createByAnother(faculties[0]);
+        final Faculty faculty = new Faculty(faculties[0]).setNew();
 
-        // Добавляем новый факультет.
-        ResponseEntity<Faculty> addResponse = rest.postForEntity(url, new HttpEntity<>(faculty), Faculty.class);
-        Faculty addedFaculty = Objects.requireNonNull(addResponse.getBody());
+        ResponseEntity<Long> addResponse = rest.postForEntity(url + "/add", new HttpEntity<>(faculty), Long.class);
+        Assertions.assertThat(addResponse).isNotNull();
+        Assertions.assertThat(addResponse.getBody()).isNotNull();
 
-        // Удаляем его.
-        ResponseEntity<Faculty> deleteResponse = rest.exchange(url + "/" + addedFaculty.getId(),
-                HttpMethod.DELETE, null, Faculty.class);
+        faculty.setId(addResponse.getBody());
 
-        assertResponse(deleteResponse, addedFaculty);
+        ResponseEntity<Faculty> getResponse = rest.getForEntity(url + "/" + faculty.getId(), Faculty.class);
+        assertResponse(getResponse, faculty);
 
-        // Пытаемся удалить несуществующий факультет.
-        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url + "/" + addedFaculty.getId(),
+        ResponseEntity<Void> deleteResponse = rest.exchange(url + "/delete/" + faculty.getId(),
+                HttpMethod.DELETE, null, Void.class);
+
+        Assertions.assertThat(deleteResponse).isNotNull();
+        Assertions.assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url + "/delete/" + BAD_ID,
                 HttpMethod.DELETE, null, ErrorResponse.class);
-
-        assertErrorResponse(errorResponse, HttpStatus.BAD_REQUEST, FacultyNotFoundException.CODE);
+        assertErrorResponse(errorResponse, HttpStatus.NOT_FOUND, FacultyNotFoundException.CODE);
     }
 
     @Test
@@ -175,41 +173,96 @@ class FacultyControllerIntegrityTest extends SchoolControllerBaseTest {
         }
         final Iterator<String> colorsIterator = (Arrays.asList(colors)).iterator();
 
-        // Добавим факультеты из массива.
         Arrays.stream(faculties).forEach(faculty -> {
-            faculty.setColor(colorsIterator.next());
-            rest.postForEntity(url, new HttpEntity<>(createByAnother(faculty)), Faculty.class);
+            Faculty newFaculty = new Faculty(faculty).setNew();
+            newFaculty.setColor(colorsIterator.next());
+            rest.postForEntity(url + "/add",
+                    new HttpEntity<>(newFaculty), Long.class);
         });
 
-        // Найдём факультет по цвету. Он должен быть в один.
-        final ResponseEntity<Faculty[]> arrayResponse = rest.getForEntity(url + "/filter/color?color=" + colors[0],
-                Faculty[].class);
+        final ResponseEntity<Faculty[]> arrayResponse = rest.getForEntity(
+                url + "/filter/color?color=" + colors[0], Faculty[].class);
 
         Assertions.assertThat(arrayResponse).isNotNull();
         Assertions.assertThat(arrayResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         Assertions.assertThat(arrayResponse.getBody()).isNotEmpty();
         Assertions.assertThat(arrayResponse.getBody()).hasSize(1);
+
+        final ResponseEntity<Faculty[]> arrayResponseMiss = rest.getForEntity(
+                url + "/filter/color?color=" + "strange color", Faculty[].class);
+
+        Assertions.assertThat(arrayResponseMiss).isNotNull();
+        Assertions.assertThat(arrayResponseMiss.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(arrayResponseMiss.getBody()).isEmpty();
     }
 
     @Test
-    @DisplayName("Получение всех факультетов -> полный список факультетов получен")
+    @DisplayName("Поиск факультетов по названию или по цвету без учёта регистра -> список факультетов получен")
+    void whenFindFacultiesByNameOrColor_thenReturnsFaculties() {
+
+        final String url = baseUrl + "/school/faculty";
+
+        final String[] names = new String[faculties.length];
+        final String[] colors = new String[faculties.length];
+
+        int baseSuffix = 7;
+
+        for (int i = 0; i < colors.length; i++) {
+            names[i] = "Monsters " + baseSuffix;
+            colors[i] = "Ice " + baseSuffix;
+            baseSuffix++;
+        }
+        final Iterator<String> namessIterator = (Arrays.asList(names)).iterator();
+        final Iterator<String> colorsIterator = (Arrays.asList(colors)).iterator();
+
+        Arrays.stream(faculties).forEach(faculty -> {
+            Faculty newFaculty = new Faculty(faculty).setNew();
+            newFaculty.setName(namessIterator.next());
+            newFaculty.setColor(colorsIterator.next());
+            rest.postForEntity(url + "/add",
+                    new HttpEntity<>(newFaculty), Long.class);
+        });
+
+        final ResponseEntity<Faculty[]> arrayResponseAll = rest.getForEntity(
+                String.format("%s", url), Faculty[].class);
+        Assertions.assertThat(arrayResponseAll).isNotNull();
+        Assertions.assertThat(arrayResponseAll.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(arrayResponseAll.getBody()).isNotEmpty();
+        Assertions.assertThat(arrayResponseAll.getBody()).hasSize(faculties.length);
+
+        final ResponseEntity<Faculty[]> arrayResponse = rest.getForEntity(
+                String.format("%s/filter?name=%s&color=%s", url, "monsTerS 7", "iCe 9"), Faculty[].class);
+
+        Assertions.assertThat(arrayResponse).isNotNull();
+        Assertions.assertThat(arrayResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(arrayResponse.getBody()).isNotEmpty();
+        Assertions.assertThat(arrayResponse.getBody()).hasSize(2);
+
+        final ResponseEntity<Faculty[]> arrayResponseMiss = rest.getForEntity(
+                String.format("%s/filter?name=%s&color=%s", url, "bip", "pip"), Faculty[].class);
+
+        Assertions.assertThat(arrayResponseMiss).isNotNull();
+        Assertions.assertThat(arrayResponseMiss.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(arrayResponseMiss.getBody()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Получение списка всех факультетов -> полный список факультетов получен")
     void whenGetAllFaculties_thenReturnsAllFaculties() {
 
         final String url = baseUrl + "/school/faculty";
 
-        // Попробуем прочитать все факультеты из пустого хранилища.
         final ResponseEntity<Faculty[]> emptyArrayResponse = rest.getForEntity(url, Faculty[].class);
-
         Assertions.assertThat(emptyArrayResponse).isNotNull();
         Assertions.assertThat(emptyArrayResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         Assertions.assertThat(emptyArrayResponse.getBody()).isEmpty();
 
-        // Добавим факультеты из массива.
-        Arrays.stream(faculties).forEach(faculty ->
-                rest.postForEntity(url, new HttpEntity<>(createByAnother(faculty)), Faculty.class));
+        Arrays.stream(faculties).forEach(faculty ->{
+                Faculty newFaculty = new Faculty(faculty).setNew();
+                rest.postForEntity(url + "/add", new HttpEntity<>(newFaculty), Long.class);
+        });
 
         final ResponseEntity<Faculty[]> arrayResponse = rest.getForEntity(url, Faculty[].class);
-
         Assertions.assertThat(arrayResponse).isNotNull();
         Assertions.assertThat(arrayResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         Assertions.assertThat(arrayResponse.getBody()).isNotEmpty();
@@ -221,38 +274,30 @@ class FacultyControllerIntegrityTest extends SchoolControllerBaseTest {
     void whenGetStudents_thenReturnsStudentsOfFaculty() {
 
         final String url = baseUrl + "/school/faculty";
-        final Faculty faculty = createByAnother(faculties[0]);
+        final Faculty faculty = new Faculty(faculties[0]).setNew();
 
-        // Добавим один факультет без студентов и прочитаем список студентов.
-        rest.postForEntity(url, new HttpEntity<>(createByAnother(faculty)), Faculty.class);
+        ResponseEntity<Long> addFacultyResponse = rest.postForEntity(url + "/add", new HttpEntity<>(faculty), Long.class);
+        Assertions.assertThat(addFacultyResponse).isNotNull();
+        Assertions.assertThat(addFacultyResponse.getBody()).isNotNull();
 
-        ResponseEntity<Faculty[]> arrayOfSingleResponse = rest.getForEntity(url, Faculty[].class);
-        Assertions.assertThat(arrayOfSingleResponse).isNotNull();
-        Assertions.assertThat(arrayOfSingleResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Assertions.assertThat(arrayOfSingleResponse.getBody()).isNotEmpty();
-        Assertions.assertThat(arrayOfSingleResponse.getBody()).hasSize(1);
-        Assertions.assertThat(arrayOfSingleResponse.getBody()[0].getStudents()).isNull();
+        faculty.setId(addFacultyResponse.getBody());
 
-        // Добавим студентов в хранилище, устанавливая каждому уже добавленный факультет.
         Arrays.stream(students).forEach(student -> {
-            Student studentWithFaculty = createByAnother(student);
-            studentWithFaculty.setFaculty(faculty);
-            rest.postForEntity(baseUrl + "/school/student", new HttpEntity<>(student), Student.class);
+            Student newStudent = new Student(student).setNew();
+            newStudent.setFaculty(faculty);
+            rest.postForEntity(baseUrl + "/school/student/add", new HttpEntity<>(student), Long.class);
         });
 
-        // Добавим ещё пару факультетов без студентов.
-        rest.postForEntity(url, new HttpEntity<>(createByAnother(faculties[1])), Faculty.class);
-        rest.postForEntity(url, new HttpEntity<>(createByAnother(faculties[2])), Faculty.class);
+        rest.postForEntity(url + "/add", new HttpEntity<>(new Faculty(faculties[1]).setNew()), Long.class);
+        rest.postForEntity(url + "/add", new HttpEntity<>(new Faculty(faculties[2]).setNew()), Long.class);
 
-        // Получим все факультеты и найдём факультет с непустым списком студентов.
-        final ResponseEntity<Faculty[]> arrayOfFaculties = rest.getForEntity(url, Faculty[].class);
+        final ResponseEntity<Faculty[]> facultiesResponse = rest.getForEntity(url, Faculty[].class);
+        Assertions.assertThat(facultiesResponse).isNotNull();
+        Assertions.assertThat(facultiesResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(facultiesResponse.getBody()).isNotEmpty();
+        Assertions.assertThat(facultiesResponse.getBody()).hasSize(3);
 
-        Assertions.assertThat(arrayOfFaculties).isNotNull();
-        Assertions.assertThat(arrayOfFaculties.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Assertions.assertThat(arrayOfFaculties.getBody()).isNotEmpty();
-        Assertions.assertThat(arrayOfFaculties.getBody()).hasSize(3);
-
-        Arrays.stream(arrayOfFaculties.getBody())
+        Arrays.stream(facultiesResponse.getBody())
                 .filter(Objects::nonNull)
                 .filter(x -> x.getStudents() != null)
                 .forEach(x ->

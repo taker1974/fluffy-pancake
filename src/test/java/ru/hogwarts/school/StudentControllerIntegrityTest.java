@@ -71,8 +71,6 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @DisplayName("Добавление студента -> возвращается id нового студента")
     void whenAddStudent_thenReturnsStudentId() {
 
-        // Мне удобно, когда в каждом методе перед глазами
-        // есть подстрока адреса запроса - так легче не запутаться.
         final String url = baseUrl + "/school/student/add";
         final Student student = new Student(students[0]).setNew();
 
@@ -100,7 +98,9 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         Assertions.assertThat(addResponse).isNotNull();
         Assertions.assertThat(addResponse.getBody()).isNotNull();
 
-        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + addResponse.getBody(), Student.class);
+        student.setId(addResponse.getBody());
+
+        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + student.getId(), Student.class);
         assertResponse(getResponse, student);
 
         ResponseEntity<ErrorResponse> errorResponse = rest.getForEntity(url + "/" + BAD_ID, ErrorResponse.class);
@@ -127,13 +127,11 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         rest.exchange(url + "/update", HttpMethod.PUT, new HttpEntity<>(updatedStudent), Student.class);
 
         ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + updatedStudent.getId(), Student.class);
-
         assertResponse(getResponse, updatedStudent);
 
         updatedStudent.setId(BAD_ID);
         ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url + "/update", HttpMethod.PUT,
                 new HttpEntity<>(updatedStudent), ErrorResponse.class);
-
         assertErrorResponse(errorResponse, HttpStatus.NOT_FOUND, StudentNotFoundException.CODE);
     }
 
@@ -156,7 +154,7 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         Assertions.assertThat(deleteResponse).isNotNull();
         Assertions.assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
-        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url + "/delete/" + student.getId(),
+        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url + "/delete/" + BAD_ID,
                 HttpMethod.DELETE, null, ErrorResponse.class);
 
         assertErrorResponse(errorResponse, HttpStatus.NOT_FOUND, StudentNotFoundException.CODE);

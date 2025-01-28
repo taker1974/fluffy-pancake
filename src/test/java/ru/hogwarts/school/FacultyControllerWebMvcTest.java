@@ -97,7 +97,7 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
                         .content(facultyJson)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isConflict())
                 .andExpect(result -> assertThat(result.getResolvedException())
                         .isInstanceOf(FacultyAlreadyExistsException.class));
     }
@@ -121,7 +121,7 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
         mvc.perform(MockMvcRequestBuilders
                         .get("/faculty/" + BAD_ID)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(result -> assertThat(result.getResolvedException())
                         .isInstanceOf(FacultyNotFoundException.class));
     }
@@ -156,7 +156,7 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
                         .content(buildJson(facultyUpdated))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(result -> assertThat(result.getResolvedException())
                         .isInstanceOf(FacultyNotFoundException.class));
     }
@@ -177,7 +177,7 @@ class FacultyControllerWebMvcTest extends SchoolControllerBaseTest {
         mvc.perform(MockMvcRequestBuilders
                         .delete("/faculty/delete/" + faculty.getId())
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(result -> assertThat(result.getResolvedException())
                         .isInstanceOf(FacultyNotFoundException.class));
     }

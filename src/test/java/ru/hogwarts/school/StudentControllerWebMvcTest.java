@@ -84,12 +84,15 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
     @MockitoBean
     FacultyRepository facultyRepository;
 
+    @SuppressWarnings("unused")
     @MockitoSpyBean
     StudentService studentService;
 
+    @SuppressWarnings("unused")
     @MockitoSpyBean
     FacultyService facultyService;
 
+    @SuppressWarnings("unused")
     @InjectMocks
     StudentController studentController;
 
@@ -117,7 +120,7 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
                         .content(studentJson)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.ALL_VALUE))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isConflict())
                 .andExpect(result -> assertThat(result.getResolvedException())
                         .isInstanceOf(StudentAlreadyExistsException.class));
     }
@@ -141,7 +144,7 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
         mvc.perform(MockMvcRequestBuilders
                         .get("/student/" + BAD_ID)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(result -> assertThat(result.getResolvedException())
                         .isInstanceOf(StudentNotFoundException.class));
     }
@@ -176,7 +179,7 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
                         .content(buildJson(studentUpdated))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(result -> assertThat(result.getResolvedException())
                         .isInstanceOf(StudentNotFoundException.class));
     }
@@ -197,7 +200,7 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
         mvc.perform(MockMvcRequestBuilders
                         .delete("/student/delete/" + student.getId())
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(result -> assertThat(result.getResolvedException())
                         .isInstanceOf(StudentNotFoundException.class));
     }
@@ -223,7 +226,7 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
                         .request(HttpMethod.PATCH,
                                 String.format("/student/%d/faculty/%d", student.getId(), faculty.getId()))
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(result -> assertThat(result.getResolvedException())
                         .isInstanceOf(FacultyNotFoundException.class));
     }
@@ -254,7 +257,7 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
         mvc.perform(MockMvcRequestBuilders
                         .get(String.format("/student/%d/faculty", BAD_ID))
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(result -> assertThat(result.getResolvedException())
                         .isInstanceOf(StudentNotFoundException.class));
     }
@@ -285,7 +288,7 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
         mvc.perform(MockMvcRequestBuilders
                         .request(HttpMethod.PATCH, String.format("/student/%d/faculty/reset", BAD_ID))
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(result -> assertThat(result.getResolvedException())
                         .isInstanceOf(StudentNotFoundException.class));
     }
