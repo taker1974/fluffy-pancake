@@ -78,4 +78,25 @@ public class StudentService {
     public List<Student> findStudentsByAgeBetween(int fromAge, int toAge) {
         return studentRepository.findByAgeBetween(fromAge, toAge);
     }
+
+    /**
+     * @return количество студентов
+     */
+    public long getCountOfStudents() {
+        return studentRepository.getCountOfStudents();
+    }
+
+    /**
+     * @return средний возраст студентов
+     */
+    public double getAverageAgeOfStudents() {
+        return studentRepository.getAverageAgeOfStudents();
+    }
+
+    /**
+     * @return список студентов из limit элементов с наибольшим id
+     */
+    public List<Student> getLastStudentsById(int limit) {
+        return studentRepository.getLastStudentsById(limit);
+    }
 }

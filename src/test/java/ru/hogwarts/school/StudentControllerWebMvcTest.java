@@ -30,6 +30,7 @@ import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.service.FacultyService;
 import ru.hogwarts.school.service.StudentService;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -42,29 +43,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
-/* https://habr.com/ru/companies/otus/articles/746414/
-
-Аннотацию WebMvcTest можно использовать для теста Spring MVC, ориентированного только на компоненты Spring MVC.
-Использование этой аннотации отключит полную автоконфигурацию и вместо этого применит только конфигурацию,
-относящуюся к тестам MVC (например, @Controller, @ControllerAdvice, @JsonComponent, Converter/GenericConverter,
-Filter, WebMvcConfigurer и HandlerMethodArgumentResolver bean-компоненты, но не @Component, @Service или @Repository
-бобы).
- */
-
-/**
- * Из условий ДЗ<br>
- * <a href="https://my.sky.pro/student-cabinet/stream-lesson/145842/homework-requirements">SkyPro</a><br>
- * <a href="https://skyengpublic.notion.site/3-6-Spring-Boot-0070e5697e594bd0a5c6e5f96a29f950">Notion</a>:<br>
- * <p>
- * Задание 2.<br>
- * Шаг 1<br>
- * Создать класс для тестирования в пакете test.<br>
- * Создать по одному тесту на каждый эндпоинт контроллера StudentController, используя WebMvcTest.<br>
- * Критерии оценки:<br>
- * - в пакете test создан класс для тестирования StudentController;<br>
- * - для тестирования использовался WebMvcTest;<br>
- * - для каждого эндпоинта контроллера StudentController создан как минимум один тест.<br>
- */
 @RequiredArgsConstructor
 @ActiveProfiles("test-h2")
 @ContextConfiguration(classes = {StudentController.class,
@@ -352,5 +330,46 @@ class StudentControllerWebMvcTest extends SchoolControllerBaseTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void whenGetCountOfStudents_thenReturnsCountOfStudents() throws Exception {
+
+        when(studentRepository.getCountOfStudents()).thenReturn((long) students.length);
+        mvc.perform(MockMvcRequestBuilders
+                        .get("/student/stat/count")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content()
+                        .string(Matchers.matchesPattern("\\d+")));
+    }
+
+    @Test
+    void whenGetAverageAgeOfStudents_thenReturnsDouble() throws Exception {
+
+        final Double averageAge = Arrays.stream(students).mapToInt(Student::getAge).average().orElse(0);
+
+        when(studentRepository.getAverageAgeOfStudents()).thenReturn(averageAge);
+        mvc.perform(MockMvcRequestBuilders
+                        .get("/student/stat/age/average")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content()
+                        .string(Matchers.matchesPattern("\\d+(\\.\\d+|,\\d+)?")))
+                .andExpect(MockMvcResultMatchers.content()
+                        .string(averageAge.toString()));
+    }
+
+    @Test
+    void whenGetLastAddedStudents_thenReturnsExpectedStudents() throws Exception {
+
+        final List<Student> lastStudents = Arrays.asList(students);
+        when(studentRepository.getLastStudentsById(anyInt())).thenReturn(lastStudents);
+        mvc.perform(MockMvcRequestBuilders
+                        .get("/student/stat/last/3") // без разницы, какой здесь лимит
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(students.length));
     }
 }

@@ -99,4 +99,25 @@ public class StudentController {
     public List<Student> findStudentsByAgeBetween(int fromAge, int toAge) {
         return studentService.findStudentsByAgeBetween(fromAge, toAge);
     }
+
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение количества студентов")
+    @GetMapping(value = "/stat/count")
+    public Long getCountOfStudents() {
+        return studentService.getCountOfStudents();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение среднего возраста студентов")
+    @GetMapping(value = "/stat/age/average")
+    public Double getAverageAgeOfStudents() {
+        return studentService.getAverageAgeOfStudents();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение последних :limit добавленных студентов")
+    @GetMapping(value = "/stat/last/{limit}")
+    public List<Student> getLastStudentsById(@PathVariable int limit) {
+        return studentService.getLastStudentsById(limit);
+    }
 }

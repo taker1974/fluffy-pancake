@@ -25,7 +25,9 @@ import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -393,5 +395,90 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         Assertions.assertThat(arrayResponseMiss).isNotNull();
         Assertions.assertThat(arrayResponseMiss.getStatusCode()).isEqualTo(HttpStatus.OK);
         Assertions.assertThat(arrayResponseMiss.getBody()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Получение количества студентов -> количество получено")
+    void whenGetCountOfStudents_thenReturnsExpectedCountOfStudents() {
+
+        final String url = baseUrl + "/school/student";
+
+        Arrays.stream(students).forEach(student -> {
+            rest.postForEntity(url + "/add", new HttpEntity<>(new Student(student).setNew()), Long.class);
+        });
+
+        ResponseEntity<Long> getCountResponse = rest.getForEntity(url + "/stat/count", Long.class);
+
+        Assertions.assertThat(getCountResponse).isNotNull();
+        Assertions.assertThat(getCountResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(getCountResponse.getBody()).isEqualTo(students.length);
+    }
+
+    @Test
+    @DisplayName("Получение количества студентов -> количество получено")
+    void whenGetAverageAgeOfStudents_thenReturnsExpectedAverage() {
+
+        final String url = baseUrl + "/school/student";
+
+        final Integer[] ages = {18, 19, 23, 27, 37};
+        Assertions.assertThat(ages).hasSize(students.length);
+
+        final Iterator<Integer> agesIterator = (Arrays.asList(ages)).iterator();
+        Arrays.stream(students).forEach(student -> {
+
+            Student newStudent = new Student(student).setNew();
+            newStudent.setAge(agesIterator.next());
+
+            rest.postForEntity(url + "/add", new HttpEntity<>(newStudent), Long.class);
+        });
+
+        final Double averageAgeExpected = Arrays.stream(ages).mapToInt(i -> i).average().orElseGet(() -> 0.0);
+
+        ResponseEntity<Double> getAverageResponse = rest.getForEntity(url + "/stat/age/average", Double.class);
+
+        Assertions.assertThat(getAverageResponse).isNotNull();
+        Assertions.assertThat(getAverageResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(getAverageResponse.getBody()).isEqualTo(averageAgeExpected);
+    }
+
+    @Test
+    @DisplayName("Получение последних добавленных студентов -> список студентов получен")
+    void whenGetLastStudents_thenReturnsExpectedListOfStudents() {
+
+        final String url = baseUrl + "/school/student";
+        final int limit = 2;
+
+        Arrays.stream(students).forEach(student -> {
+            rest.postForEntity(url + "/add", new HttpEntity<>(new Student(student).setNew()), Long.class);
+        });
+
+        // Сначала получим список всех студентов, отсортируем его программно известным способом
+        // и возьмём из полученного массива последние limit элементов.
+        ResponseEntity<Student[]> getAllResponse = rest.getForEntity(url, Student[].class);
+
+        Assertions.assertThat(getAllResponse).isNotNull();
+        Assertions.assertThat(getAllResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(getAllResponse.getBody()).isNotEmpty();
+        Assertions.assertThat(getAllResponse.getBody()).hasSize(students.length);
+
+        final Student[] sortedStudents = getAllResponse.getBody();
+        Arrays.sort(sortedStudents, Comparator.comparingLong(Student::getId));
+        final Student[] lastStudents = Arrays.copyOfRange(sortedStudents,
+                students.length - limit, students.length);
+
+        // Теперь получим список последних добавленных студентов
+        // проверяемым способом.
+        ResponseEntity<Student[]> getLastResponse = rest.getForEntity(url + "/stat/last/" + limit, Student[].class);
+
+        Assertions.assertThat(getLastResponse).isNotNull();
+        Assertions.assertThat(getLastResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(getLastResponse.getBody()).isNotEmpty();
+        Assertions.assertThat(getLastResponse.getBody()).hasSize(limit);
+
+        // Сравним полученные списки.
+        final long[] expectedIds = Arrays.stream(lastStudents).mapToLong(Student::getId).toArray();
+        final long[] actualIds = Arrays.stream(getLastResponse.getBody()).mapToLong(Student::getId).toArray();
+
+        Assertions.assertThat(expectedIds).containsExactlyInAnyOrder(actualIds);
     }
 }

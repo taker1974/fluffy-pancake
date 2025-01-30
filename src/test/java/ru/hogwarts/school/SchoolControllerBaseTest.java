@@ -16,7 +16,9 @@ public abstract class SchoolControllerBaseTest {
     protected final Student[] students = new Student[]{
             new Student(0, "John Doe", 18, null),
             new Student(0, "Jane Doe", 19, null),
-            new Student(0, "John Smith", 20, null)
+            new Student(0, "John Smith", 23, null),
+            new Student(0, "Amy Winehouse", 27, null),
+            new Student(0, "Даниил Хармс", 37, null)
     };
 
     final Faculty[] faculties = new Faculty[]{
