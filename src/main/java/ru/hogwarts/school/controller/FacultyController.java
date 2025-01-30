@@ -1,71 +1,86 @@
-// SkyPro
-// Терских Константин, kostus.online.1974@yandex.ru, 2025
-// Домашнее задание третьего курса ("Работа с кодом") Java Developer.
-
 package ru.hogwarts.school.controller;
 
-import org.springframework.http.ResponseEntity;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.FacultyService;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
-/**
- * Контроллер для работы с факультетами.
- *
- * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.2
- */
 @RestController
 @RequestMapping(value = "/faculty")
+@Tag(name = "Факультеты")
+@RequiredArgsConstructor
 public class FacultyController {
 
     private final FacultyService facultyService;
 
-    public FacultyController(FacultyService facultyService) {
-        this.facultyService = facultyService;
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Добавление нового факультета. Возвращает id нового факультета")
+    @PostMapping("/add")
+    public Long addFaculty(@RequestBody Faculty faculty) {
+        return facultyService.addFaculty(faculty).getId();
     }
 
-    @PostMapping
-    public ResponseEntity<Faculty> addFaculty(Faculty faculty)  {
-        return ResponseEntity.ok(facultyService.addFaculty(faculty));
-    }
-
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение существующего факультета по id")
     @GetMapping(value = "/{id}")
-    public ResponseEntity<Faculty> getFaculty(@PathVariable long id)  {
-        return ResponseEntity.ok(facultyService.getFaculty(id));
+    public Faculty getFaculty(@PathVariable long id) {
+        return facultyService.getFaculty(id);
     }
 
-    @PutMapping
-    public ResponseEntity<Faculty> updateFaculty(Faculty faculty)  {
-        return ResponseEntity.ok(facultyService.updateFaculty(faculty));
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Обновление существующего факультета")
+    @PutMapping("/update")
+    public Faculty updateFaculty(@RequestBody Faculty faculty) {
+        return facultyService.updateFaculty(faculty);
     }
 
-    @DeleteMapping(value = "/{id}")
-    public ResponseEntity<Faculty> deleteFaculty(@PathVariable long id)  {
-        return ResponseEntity.ok(facultyService.deleteFaculty(id));
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Удаление существующего факультета")
+    @DeleteMapping(value = "/delete/{id}")
+    public void deleteFaculty(@PathVariable long id) {
+        facultyService.deleteFaculty(id);
     }
 
-    @RequestMapping(value = "/filter/color/{color}")
-    public ResponseEntity<Collection<Faculty>> findFacultiesByColor(@PathVariable String color) {
-        return ResponseEntity.ok(facultyService.findFacultiesByColor(color));
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Поиск факультетов по точному совпадению \"цвета\"")
+    @GetMapping(value = "/filter/color")
+    public List<Faculty> findFacultiesByColor(String color) {
+        return facultyService.findFacultiesByColor(color);
     }
 
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Поиск факультетов по названию или по \"цвету\" без учёта регистра")
+    @GetMapping(value = "/filter")
+    public List<Faculty> findFacultiesByNameOrColor(String name, String color) {
+        return facultyService.findFacultiesByNameOrColorIgnoreCase(name, color);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение всех факультетов")
     @GetMapping
-    public ResponseEntity<Collection<Faculty>> getAllFaculties() {
-        return ResponseEntity.ok(facultyService.getAllFaculties());
+    public List<Faculty> getAllFaculties() {
+        return facultyService.getAllFaculties();
     }
 
-    @GetMapping(value = "/students/{id}")
-    public ResponseEntity<Collection<Student>> findStudentsByFaculty(@PathVariable long id) {
-        return ResponseEntity.ok(facultyService.getFaculty(id).getStudents());
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение студентов факультета")
+    @GetMapping(value = "/{facultyId}/students")
+    public Set<Student> findStudentsByFaculty(@PathVariable long facultyId) {
+        return facultyService.getFaculty(facultyId).getStudents();
     }
 }

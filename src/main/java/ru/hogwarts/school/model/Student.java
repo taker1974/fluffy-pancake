@@ -1,32 +1,21 @@
-// SkyPro
-// Терских Константин, kostus.online.1974@yandex.ru, 2025
-// Домашнее задание третьего курса ("Работа с кодом") Java Developer.
-
 package ru.hogwarts.school.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
-/**
- * Студент.
- *
- * @author Константин Терских, kostus.online.1974@yandex.ru, 2025
- * @version 0.4
- */
 @Entity
-@Data
-@NoArgsConstructor
+@Getter
+@Setter
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class Student {
-
-    public static final int MIN_AGE = 6;
-    public static final int MIN_NAME_LENGTH = 1;
-    public static final int MAX_NAME_LENGTH = 100;
 
     @Id
     @GeneratedValue
@@ -35,39 +24,27 @@ public class Student {
     private String name;
     private int age;
 
-    // https://stackoverflow.com/questions/41407921/eliminate-circular-json-in-java-spring-many-to-many-relationship
-    // Eliminate circular JSON in Java Spring
     @ManyToOne
     @JoinColumn(name = "faculty_id")
-    @JsonIgnoreProperties("students")
     private Faculty faculty;
 
-    /**
-     * Конструктор.
-     *
-     * @param id   идентификатор студента
-     * @param name имя студента
-     * @param age  возраст студента
-     * @throws NullPointerException     если имя студента равно null
-     * @throws IllegalArgumentException если имя студента короче MIN_NAME_LENGTH или длиннее MAX_NAME_LENGTH символов
-     */
-    public Student(long id, String name, int age) {
+    public Student(Student student) {
+        this.id = student.getId();
+        this.name = student.getName();
+        this.age = student.getAge();
+        this.faculty = student.getFaculty();
+    }
 
-        if (name == null) {
-            throw new NullPointerException("Имя студента не может быть null");
-        }
-        if (name.isBlank() || name.length() > MAX_NAME_LENGTH) {
-            throw new IllegalArgumentException("Длина имени студента должна быть от " +
-                    MIN_NAME_LENGTH + " до " + MAX_NAME_LENGTH + " символов");
-        }
-
-        if (age < MIN_AGE) {
-            throw new IllegalArgumentException("Возраст студента не может быть меньше " +
-                    MIN_AGE + " лет");
-        }
-
-        this.id = id;
+    public Student(String name, int age) {
         this.name = name;
         this.age = age;
+        id = 0;
+        faculty = null;
+    }
+
+    public Student setNew() {
+        id = 0;
+        faculty = null;
+        return this;
     }
 }
