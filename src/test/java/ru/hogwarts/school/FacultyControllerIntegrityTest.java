@@ -29,7 +29,7 @@ import java.util.Objects;
 import static ru.hogwarts.school.tools.StringEx.replace;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test-h2")
+@ActiveProfiles("test-pg")
 class FacultyControllerIntegrityTest extends SchoolControllerBaseTest {
 
     private final FacultyController facultyController;

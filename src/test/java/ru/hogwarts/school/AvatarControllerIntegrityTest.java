@@ -12,11 +12,14 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import ru.hogwarts.school.controller.AvatarController;
+import ru.hogwarts.school.model.Avatar;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repository.AvatarRepository;
 import ru.hogwarts.school.repository.StudentRepository;
@@ -26,13 +29,12 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Objects;
 
 import static ru.hogwarts.school.tools.StringEx.replace;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test-h2")
+@ActiveProfiles("test-pg")
 class AvatarControllerIntegrityTest extends SchoolControllerBaseTest {
 
     public static final String IMAGE_PARAM_KEY = "file";
@@ -53,7 +55,6 @@ class AvatarControllerIntegrityTest extends SchoolControllerBaseTest {
     private final String avatarUrl;
 
     AvatarControllerIntegrityTest(@LocalServerPort int port,
-
                                   @Autowired AvatarController avatarController,
                                   @Autowired AvatarRepository avatarRepository,
                                   @Autowired StudentRepository studentRepository,
@@ -68,7 +69,7 @@ class AvatarControllerIntegrityTest extends SchoolControllerBaseTest {
         this.rest = restTemplate;
     }
 
-    private void deleteAllFiles() {
+    void deleteAllFiles() {
         File directory = new File(avatarsPath);
         if (directory.exists() && directory.isDirectory()) {
             File[] files = directory.listFiles();
@@ -99,7 +100,7 @@ class AvatarControllerIntegrityTest extends SchoolControllerBaseTest {
         Assertions.assertThat(rest).isNotNull();
     }
 
-    private static byte[] getImageBytes() {
+    static byte[] getImageBytes() {
         try {
             ClassLoader classloader = Thread.currentThread().getContextClassLoader();
             final URI uri = Objects.requireNonNull(classloader.getResource(IMAGE_PATH)).toURI();
@@ -109,7 +110,7 @@ class AvatarControllerIntegrityTest extends SchoolControllerBaseTest {
         }
     }
 
-    private static String getImagePath() {
+    static String getImagePath() {
         try {
             ClassLoader classloader = Thread.currentThread().getContextClassLoader();
             final URI uri = Objects.requireNonNull(classloader.getResource(IMAGE_PATH)).toURI();
@@ -119,51 +120,46 @@ class AvatarControllerIntegrityTest extends SchoolControllerBaseTest {
         }
     }
 
+    long uploadAvatar(final String fileName, final Student student) {
+
+        var resource = new ByteArrayResource(getImageBytes()) {
+            @Override
+            public String getFilename() {
+                return fileName;
+            }
+        };
+
+        final var headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        final MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add(IMAGE_PARAM_KEY, resource);
+
+        final HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        ResponseEntity<Long> responseEntity = rest.postForEntity(
+                replace("{avatarUrl}/student/{studentId}/upload", avatarUrl, student.getId()),
+                requestEntity, Long.class);
+
+        Assertions.assertThat(responseEntity).isNotNull();
+        Assertions.assertThat(responseEntity.getBody()).isNotNull();
+        Assertions.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        Assertions.assertThat(responseEntity.getBody()).isEqualTo(student.getId());
+
+        return responseEntity.getBody();
+    }
+
     @Test
     @DisplayName("Загрузка аватара студента -> возвращается id аватара")
     void whenUploadAvatar_thenReturnsAvatarId() {
 
         Arrays.stream(students).forEach(student -> studentRepository.save(getNew(student)));
-        final Iterator<Student> studentIterator = studentRepository.findAll().iterator();
+        final Student[] studentsLoaded = studentRepository.findAll().toArray(Student[]::new);
 
-//        final String fileName = getImagePath();
-//        var resource = new ByteArrayResource(getImageBytes()) {
-//            @Override
-//            public String getFilename() {
-//                return fileName;
-//            }
-//        };
-//
-//        final var headers = new HttpHeaders();
-//        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-//
-//        final MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-//        body.add(IMAGE_PARAM_KEY, resource);
-//
-//        final long id = studentIterator.next().getId();
-//
-//        final HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-//        try {
-//            final Long result = rest.postForObject(
-//                    replace("{avatarUrl}/student/{studentId}/upload", avatarUrl, id),
-//                    requestEntity, Long.class);
-//
-//            Assertions.assertThat(result).isNotNull();
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        Arrays.stream(studentsLoaded).forEach(student ->
+                Assertions.assertThat(uploadAvatar(getImagePath(), student)).isEqualTo(student.getId()));
 
-        Assertions.assertThat(studentIterator.hasNext()).isTrue();
-
-//        ResponseEntity<?> response = rest.postForObject(
-//                replace("{avatarUrl}/{studentId}/upload", avatarUrl, id),
-//                requestEntity, ResponseEntity.class);
-
-        // Здесь возникает ошибка:
-        // org.springframework.web.client.RestClientException: Error while extracting response for type [class [Lru
-        // .hogwarts.school.model.Avatar;] and content type [application/json]
-
-        //Assertions.assertThat(response).isNotNull();
+        Arrays.stream(studentsLoaded).forEach(student ->
+                Assertions.assertThat(avatarRepository.findByStudentId(student.getId()).isPresent()).isTrue());
     }
 }
