@@ -25,6 +25,7 @@ import java.util.List;
 @RequestMapping(value = "/student")
 @Tag(name = "Студенты")
 @RequiredArgsConstructor
+@SuppressWarnings("unused")
 public class StudentController {
 
     private final StudentService studentService;
@@ -53,7 +54,7 @@ public class StudentController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Удаление существующего студента по id")
-    @DeleteMapping(value = "/delete/{id}")
+    @DeleteMapping(value = "/{id}/delete")
     public void deleteStudent(@PathVariable long id) {
         studentService.deleteStudent(id);
     }
@@ -74,9 +75,9 @@ public class StudentController {
 
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Сброс факультета для студента studentId")
-    @PatchMapping(value = "/{studentId}/faculty/reset")
-    public void resetFaculty(@PathVariable long studentId) {
-        studentService.resetFaculty(studentId);
+    @PatchMapping(value = "/{id}/faculty/reset")
+    public void resetFaculty(@PathVariable long id) {
+        studentService.resetFaculty(id);
     }
 
     @ResponseStatus(HttpStatus.OK)

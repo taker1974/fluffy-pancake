@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import ru.hogwarts.school.controller.StudentController;
 import ru.hogwarts.school.controller.advice.CommonControllerAdvice;
-import ru.hogwarts.school.dto.ErrorResponse;
+import ru.hogwarts.school.dto.ErrorResponseDto;
 import ru.hogwarts.school.exception.faculty.FacultyNotFoundException;
 import ru.hogwarts.school.exception.student.StudentAlreadyExistsException;
 import ru.hogwarts.school.exception.student.StudentNotFoundException;
@@ -27,27 +27,31 @@ import ru.hogwarts.school.repository.StudentRepository;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+
+import static ru.hogwarts.school.tools.StringEx.replace;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test-h2")
 class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
 
-    private final StudentRepository studentRepository;
-    private final FacultyRepository facultyRepository;
     private final StudentController studentController;
+    private final StudentRepository studentRepository;
+
+    private final FacultyRepository facultyRepository;
+
     private final TestRestTemplate rest;
 
-    private final String baseUrl;
+    private final String studentUrl;
 
     StudentControllerIntegrityTest(@LocalServerPort int port,
+                                   @Autowired StudentController studentController,
                                    @Autowired StudentRepository studentRepository,
                                    @Autowired FacultyRepository facultyRepository,
-                                   @Autowired StudentController studentController,
                                    @Autowired TestRestTemplate restTemplate) {
 
-        baseUrl = "http://localhost:" + port;
+        studentUrl = "http://localhost:" + port + "/school/student";
 
         this.studentRepository = studentRepository;
         this.facultyRepository = facultyRepository;
@@ -65,7 +69,7 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @Test
     @DisplayName("Валидация контекста")
     void contextLoads() {
-        Assertions.assertThat(baseUrl).isNotBlank();
+        Assertions.assertThat(studentUrl).isNotBlank();
         Assertions.assertThat(studentController).isNotNull();
     }
 
@@ -73,18 +77,18 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @DisplayName("Добавление студента -> возвращается id нового студента")
     void whenAddStudent_thenReturnsStudentId() {
 
-        final String url = baseUrl + "/school/student/add";
-        final Student student = new Student(students[0]).setNew();
+        final String urlAdd = studentUrl + "/add";
 
-        ResponseEntity<Long> response = rest.postForEntity(url, new HttpEntity<>(student), Long.class);
+        final Student student = getNew(students[0]);
+        ResponseEntity<Long> response = rest.postForEntity(urlAdd, new HttpEntity<>(student), Long.class);
 
         Assertions.assertThat(response).isNotNull();
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         Assertions.assertThat(response.getBody()).isNotNull();
 
         student.setId(response.getBody());
-        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url, HttpMethod.POST,
-                new HttpEntity<>(Objects.requireNonNull(student)), ErrorResponse.class);
+        ResponseEntity<ErrorResponseDto> errorResponse = rest.exchange(urlAdd, HttpMethod.POST,
+                new HttpEntity<>(Objects.requireNonNull(student)), ErrorResponseDto.class);
 
         assertErrorResponse(errorResponse, HttpStatus.CONFLICT, StudentAlreadyExistsException.CODE);
     }
@@ -93,19 +97,14 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @DisplayName("Получение студента -> студент получен")
     void whenGetStudent_thenReturnsExpectedStudent() {
 
-        final String url = baseUrl + "/school/student";
-        final Student student = new Student(students[0]).setNew();
+        final Student student = studentRepository.save(getNew(students[0]));
+        final String urlGet = studentUrl + "/" + student.getId();
 
-        ResponseEntity<Long> addResponse = rest.postForEntity(url + "/add", new HttpEntity<>(student), Long.class);
-        Assertions.assertThat(addResponse).isNotNull();
-        Assertions.assertThat(addResponse.getBody()).isNotNull();
-
-        student.setId(addResponse.getBody());
-
-        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + student.getId(), Student.class);
+        ResponseEntity<Student> getResponse = rest.getForEntity(urlGet, Student.class);
         assertResponse(getResponse, student);
 
-        ResponseEntity<ErrorResponse> errorResponse = rest.getForEntity(url + "/" + BAD_ID, ErrorResponse.class);
+        final String urlGetBad = studentUrl + "/" + BAD_ID;
+        ResponseEntity<ErrorResponseDto> errorResponse = rest.getForEntity(urlGetBad, ErrorResponseDto.class);
         assertErrorResponse(errorResponse, HttpStatus.NOT_FOUND, StudentNotFoundException.CODE);
     }
 
@@ -113,27 +112,29 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @DisplayName("Обновление студента -> обновлённый студент получен")
     void whenUpdateStudent_thenReturnsUpdatedStudent() {
 
-        final String url = baseUrl + "/school/student";
-        final Student student = new Student(students[0]).setNew();
-
-        ResponseEntity<Long> addResponse = rest.postForEntity(url + "/add", new HttpEntity<>(student), Long.class);
-        Assertions.assertThat(addResponse).isNotNull();
-        Assertions.assertThat(addResponse.getBody()).isNotNull();
-
-        student.setId(addResponse.getBody());
+        final Student student = studentRepository.save(getNew(students[0]));
+        final String urlUpdate = studentUrl + "/update";
 
         final Student updatedStudent = new Student(student);
-        updatedStudent.setName(student.getName() + " +50% for free!");
+        updatedStudent.setName(student.getName() + " (updated name)");
         updatedStudent.setAge(student.getAge() + 2);
 
-        rest.exchange(url + "/update", HttpMethod.PUT, new HttpEntity<>(updatedStudent), Student.class);
+        rest.put(urlUpdate, new HttpEntity<>(updatedStudent), Student.class);
 
-        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + updatedStudent.getId(), Student.class);
-        assertResponse(getResponse, updatedStudent);
+        Optional<Student> optionalStudent = studentRepository.findById(updatedStudent.getId());
+
+        Assertions.assertThat(optionalStudent).isPresent();
+        Assertions.assertThat(optionalStudent.get()).isNotNull();
+        Assertions.assertThat(optionalStudent.get().getId()).isEqualTo(updatedStudent.getId());
+        Assertions.assertThat(optionalStudent.get().getName()).isEqualTo(updatedStudent.getName());
+        Assertions.assertThat(optionalStudent.get().getAge()).isEqualTo(updatedStudent.getAge());
 
         updatedStudent.setId(BAD_ID);
-        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url + "/update", HttpMethod.PUT,
-                new HttpEntity<>(updatedStudent), ErrorResponse.class);
+        updatedStudent.setName(student.getName() + " (bad name)");
+        updatedStudent.setAge(student.getAge() + 6);
+
+        ResponseEntity<ErrorResponseDto> errorResponse = rest.exchange(urlUpdate, HttpMethod.PUT,
+                new HttpEntity<>(updatedStudent), ErrorResponseDto.class);
         assertErrorResponse(errorResponse, HttpStatus.NOT_FOUND, StudentNotFoundException.CODE);
     }
 
@@ -141,24 +142,22 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @DisplayName("Удаление студента -> возвращается статус NO_CONTENT")
     void whenDeleteStudent_thenReturnsStatusNoContent() {
 
-        final String url = baseUrl + "/school/student";
-        final Student student = new Student(students[0]).setNew();
+        final Student student = studentRepository.save(getNew(students[0]));
+        final String urlDelete = studentUrl + "/" + student.getId() + "/delete";
 
-        ResponseEntity<Long> addResponse = rest.postForEntity(url + "/add", new HttpEntity<>(student), Long.class);
-        Assertions.assertThat(addResponse).isNotNull();
-        Assertions.assertThat(addResponse.getBody()).isNotNull();
-
-        student.setId(addResponse.getBody());
-
-        ResponseEntity<Void> deleteResponse = rest.exchange(url + "/delete/" + student.getId(),
-                HttpMethod.DELETE, null, Void.class);
-
+        ResponseEntity<Void> deleteResponse = rest.exchange(urlDelete, HttpMethod.DELETE, null,
+                Void.class);
         Assertions.assertThat(deleteResponse).isNotNull();
         Assertions.assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
-        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(url + "/delete/" + BAD_ID,
-                HttpMethod.DELETE, null, ErrorResponse.class);
+        ResponseEntity<ErrorResponseDto> errorResponse = rest.exchange(urlDelete, HttpMethod.DELETE,
+                null, ErrorResponseDto.class);
+        assertErrorResponse(errorResponse, HttpStatus.NOT_FOUND, StudentNotFoundException.CODE);
 
+        final String urlDeleteBad = studentUrl + "/" + BAD_ID + "/delete";
+
+        errorResponse = rest.exchange(urlDeleteBad, HttpMethod.DELETE,
+                null, ErrorResponseDto.class);
         assertErrorResponse(errorResponse, HttpStatus.NOT_FOUND, StudentNotFoundException.CODE);
     }
 
@@ -166,29 +165,17 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @DisplayName("Установка факультета студента по Id -> студент с установленным факультетом получен")
     void whenSetStudentFaculty_thenReturnsStudentWithFaculty() {
 
-        final String facultyUrl = baseUrl + "/school/faculty";
-        final Faculty faculty = new Faculty(faculties[0]).setNew();
+        final Faculty faculty = facultyRepository.save(getNew(faculties[0]));
+        final Student student = studentRepository.save(getNew(students[0]));
 
-        ResponseEntity<Long> addFacultyResponse = rest.postForEntity(facultyUrl + "/add",
-                new HttpEntity<>(faculty), Long.class);
-
-        Assertions.assertThat(addFacultyResponse.getBody()).isNotNull();
-        faculty.setId(addFacultyResponse.getBody());
-
-        final String url = baseUrl + "/school/student";
-        final Student student = new Student(students[0]).setNew();
-
-        ResponseEntity<Long> addStudentResponse = rest.postForEntity(url + "/add",
-                new HttpEntity<>(student), Long.class);
-
-        Assertions.assertThat(addStudentResponse.getBody()).isNotNull();
-        student.setId(addStudentResponse.getBody());
-
-        final String linkageUrl = url + "/" + student.getId() + "/faculty/" + faculty.getId();
+        final String linkageUrl = replace("{studentUrl}/{studentId}/faculty/{facultyId}",
+                studentUrl, student.getId(), faculty.getId());
 
         rest.exchange(linkageUrl, HttpMethod.PATCH, null, Void.class);
 
-        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + student.getId(), Student.class);
+        ResponseEntity<Student> getResponse = rest.getForEntity(
+                studentUrl + "/" + student.getId(),
+                Student.class);
 
         Assertions.assertThat(getResponse).isNotNull();
         Assertions.assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -199,10 +186,11 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         Assertions.assertThat(getResponse.getBody().getFaculty().getId()).isEqualTo(faculty.getId());
         Assertions.assertThat(getResponse.getBody().getFaculty().getName()).isEqualTo(faculty.getName());
 
-        final String badLinkageUrl = url + "/" + student.getId() + "/faculty/" + BAD_ID;
+        final String badLinkageUrl = replace("{studentUrl}/{studentId}/faculty/{facultyId}",
+                studentUrl, student.getId(), BAD_ID);
 
-        ResponseEntity<ErrorResponse> errorResponse = rest.exchange(badLinkageUrl, HttpMethod.PATCH,
-                null, ErrorResponse.class);
+        ResponseEntity<ErrorResponseDto> errorResponse = rest.exchange(badLinkageUrl, HttpMethod.PATCH,
+                null, ErrorResponseDto.class);
 
         assertErrorResponse(errorResponse, HttpStatus.NOT_FOUND, FacultyNotFoundException.CODE);
     }
@@ -211,26 +199,12 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @DisplayName("Получение факультета студента -> факультет получен")
     void whenGetStudentFaculty_thenReturnsFaculty() {
 
-        final String facultyUrl = baseUrl + "/school/faculty";
-        final Faculty faculty = new Faculty(faculties[0]).setNew();
-
-        ResponseEntity<Long> addFacultyResponse = rest.postForEntity(facultyUrl + "/add",
-                new HttpEntity<>(faculty), Long.class);
-
-        Assertions.assertThat(addFacultyResponse.getBody()).isNotNull();
-        faculty.setId(addFacultyResponse.getBody());
-
-        final String url = baseUrl + "/school/student";
-        final Student student = new Student(students[0]).setNew();
-
-        ResponseEntity<Long> addStudentResponse = rest.postForEntity(url + "/add",
-                new HttpEntity<>(student), Long.class);
-
-        Assertions.assertThat(addStudentResponse.getBody()).isNotNull();
-        student.setId(addStudentResponse.getBody());
+        final Faculty faculty = facultyRepository.save(getNew(faculties[0]));
+        final Student student = studentRepository.save(getNew(students[0]));
 
         student.setFaculty(faculty);
-        ResponseEntity<Student> updateResponse = rest.exchange(url + "/update",
+        ResponseEntity<Student> updateResponse = rest.exchange(
+                studentUrl + "/update",
                 HttpMethod.PUT, new HttpEntity<>(student), Student.class);
 
         Assertions.assertThat(updateResponse).isNotNull();
@@ -240,11 +214,12 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         Assertions.assertThat(updateResponse.getBody().getFaculty()).isNotNull();
         Assertions.assertThat(updateResponse.getBody().getFaculty().getId()).isEqualTo(faculty.getId());
 
-        final Faculty facultyNotInDb = new Faculty(faculties[1]).setNew();
+        final Faculty facultyNotInDb = getNew(faculties[1]);
         student.setFaculty(facultyNotInDb);
 
-        ResponseEntity<ErrorResponse> badUpdateResponse = rest.exchange(url + "/update",
-                HttpMethod.PUT, new HttpEntity<>(student), ErrorResponse.class);
+        ResponseEntity<ErrorResponseDto> badUpdateResponse = rest.exchange(
+                studentUrl + "/update",
+                HttpMethod.PUT, new HttpEntity<>(student), ErrorResponseDto.class);
 
         Assertions.assertThat(badUpdateResponse).isNotNull();
         Assertions.assertThat(badUpdateResponse.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -256,39 +231,20 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @DisplayName("Сброс факультета студента -> возвращается статус OK")
     void whenResetStudentFaculty_thenReturnsStatusOK() {
 
-        final String facultyUrl = baseUrl + "/school/faculty";
-        final Faculty faculty = new Faculty(faculties[0]).setNew();
-
-        ResponseEntity<Long> addFacultyResponse = rest.postForEntity(facultyUrl + "/add",
-                new HttpEntity<>(faculty), Long.class);
-
-        Assertions.assertThat(addFacultyResponse.getBody()).isNotNull();
-        faculty.setId(addFacultyResponse.getBody());
-
-        final String url = baseUrl + "/school/student";
-        final Student student = new Student(students[0]).setNew();
-
-        ResponseEntity<Long> addStudentResponse = rest.postForEntity(url + "/add",
-                new HttpEntity<>(student), Long.class);
-
-        Assertions.assertThat(addStudentResponse.getBody()).isNotNull();
-        student.setId(addStudentResponse.getBody());
+        final Faculty faculty = facultyRepository.save(getNew(faculties[0]));
+        final Student student = studentRepository.save(getNew(students[0]));
 
         student.setFaculty(faculty);
-        ResponseEntity<Student> updateResponse = rest.exchange(url + "/update",
+        rest.exchange(
+                studentUrl + "/update",
                 HttpMethod.PUT, new HttpEntity<>(student), Student.class);
 
-        Assertions.assertThat(updateResponse).isNotNull();
-        Assertions.assertThat(updateResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Assertions.assertThat(updateResponse.getBody()).isNotNull();
-        Assertions.assertThat(updateResponse.getBody().getId()).isEqualTo(student.getId());
-        Assertions.assertThat(updateResponse.getBody().getFaculty()).isNotNull();
-        Assertions.assertThat(updateResponse.getBody().getFaculty().getId()).isEqualTo(faculty.getId());
-
-        rest.exchange(url + "/" + student.getId() + "/faculty/reset",
+        rest.exchange(replace("{studentUrl}/{studentId}/faculty/reset",
+                        studentUrl, student.getId()),
                 HttpMethod.PATCH, null, Void.class);
 
-        ResponseEntity<Student> getResponse = rest.getForEntity(url + "/" + student.getId(), Student.class);
+        ResponseEntity<Student> getResponse = rest.getForEntity(
+                studentUrl + "/" + student.getId(), Student.class);
         assertResponse(getResponse, student);
     }
 
@@ -296,20 +252,17 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @DisplayName("Получение всех студентов -> полный список студентов получен")
     void whenGetAllStudents_thenReturnsAllStudents() {
 
-        final String url = baseUrl + "/school/student";
-
-        final ResponseEntity<Student[]> emptyArrayResponse = rest.getForEntity(url, Student[].class);
+        final ResponseEntity<Student[]> emptyArrayResponse = rest.getForEntity(
+                studentUrl, Student[].class);
 
         Assertions.assertThat(emptyArrayResponse).isNotNull();
         Assertions.assertThat(emptyArrayResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         Assertions.assertThat(emptyArrayResponse.getBody()).isEmpty();
 
-        Arrays.stream(students).forEach(student ->
-                rest.postForEntity(url + "/add",
-                        new HttpEntity<>(new Student(student).setNew()),
-                        Long.class));
+        Arrays.stream(students).forEach(student -> studentRepository.save(getNew(student)));
 
-        final ResponseEntity<Student[]> arrayResponse = rest.getForEntity(url, Student[].class);
+        final ResponseEntity<Student[]> arrayResponse = rest.getForEntity(
+                studentUrl, Student[].class);
 
         Assertions.assertThat(arrayResponse).isNotNull();
         Assertions.assertThat(arrayResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -321,8 +274,6 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @DisplayName("Поиск студентов по точному возрасту -> список студентов получен")
     void whenFindStudentsByAgeExact_thenReturnsStudentsOfAge() {
 
-        final String url = baseUrl + "/school/student";
-
         final Integer[] ages = new Integer[students.length];
         int baseAge = 17;
         for (int i = 0; i < ages.length; i++) {
@@ -330,17 +281,11 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         }
         final Iterator<Integer> agesIterator = (Arrays.asList(ages)).iterator();
 
-        Arrays.stream(students).forEach(student -> {
+        Arrays.stream(students).forEach(student ->
+                studentRepository.save(new Student(0L, student.getName(), agesIterator.next(), null)));
 
-            Student newStudent = new Student(student).setNew();
-            newStudent.setAge(agesIterator.next());
-
-            rest.postForEntity(url + "/add",
-                    new HttpEntity<>(newStudent),
-                    Long.class);
-        });
-
-        final ResponseEntity<Student[]> arrayResponse = rest.getForEntity(url + "/filter/age/" + ages[0],
+        final ResponseEntity<Student[]> arrayResponse = rest.getForEntity(
+                studentUrl + "/filter/age/" + ages[0],
                 Student[].class);
 
         Assertions.assertThat(arrayResponse).isNotNull();
@@ -348,7 +293,8 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         Assertions.assertThat(arrayResponse.getBody()).isNotEmpty();
         Assertions.assertThat(arrayResponse.getBody()).hasSize(1);
 
-        final ResponseEntity<Student[]> arrayResponseMiss = rest.getForEntity(url + "/filter/age/666",
+        final ResponseEntity<Student[]> arrayResponseMiss = rest.getForEntity(
+                studentUrl + "/filter/age/" + (baseAge + 100),
                 Student[].class);
 
         Assertions.assertThat(arrayResponseMiss).isNotNull();
@@ -360,7 +306,7 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @DisplayName("Поиск студентов по диапазону возраста -> список студентов получен")
     void whenFindStudentsByAgeBetween_thenReturnsStudentsOfAgeRange() {
 
-        final String url = baseUrl + "/school/student";
+        Assertions.assertThat(students).hasSizeGreaterThanOrEqualTo(3);
 
         final Integer[] ages = new Integer[students.length];
         int baseAge = 17;
@@ -369,20 +315,13 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         }
         final Iterator<Integer> agesIterator = (Arrays.asList(ages)).iterator();
 
-        Arrays.stream(students).forEach(student -> {
-
-            Student newStudent = new Student(student).setNew();
-            newStudent.setAge(agesIterator.next());
-
-            rest.postForEntity(url + "/add",
-                    new HttpEntity<>(newStudent),
-                    Long.class);
-        });
-
-        Assertions.assertThat(students).hasSizeGreaterThan(1);
+        Arrays.stream(students).forEach(student ->
+                studentRepository.save(new Student(0L, student.getName(), agesIterator.next(), null)));
 
         final ResponseEntity<Student[]> arrayResponse = rest.getForEntity(
-                url + "/filter/age/between?fromAge=17&toAge=18", Student[].class);
+                replace("{studentUrl}/filter/age/between?fromAge={fromAge}&toAge={toAge}",
+                        studentUrl, 17, 18),
+                Student[].class);
 
         Assertions.assertThat(arrayResponse).isNotNull();
         Assertions.assertThat(arrayResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -390,7 +329,9 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
         Assertions.assertThat(arrayResponse.getBody()).hasSize(2);
 
         final ResponseEntity<Student[]> arrayResponseMiss = rest.getForEntity(
-                url + "/filter/age/between?fromAge=666&toAge=800", Student[].class);
+                replace("{studentUrl}/filter/age/between?fromAge={fromAge}&toAge={toAge}",
+                        studentUrl, baseAge + 100, baseAge + 200),
+                Student[].class);
 
         Assertions.assertThat(arrayResponseMiss).isNotNull();
         Assertions.assertThat(arrayResponseMiss.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -401,13 +342,12 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @DisplayName("Получение количества студентов -> количество получено")
     void whenGetCountOfStudents_thenReturnsExpectedCountOfStudents() {
 
-        final String url = baseUrl + "/school/student";
+        Arrays.stream(students).forEach(student ->
+                studentRepository.save(new Student(0L, student.getName(), 17, null)));
 
-        Arrays.stream(students).forEach(student -> {
-            rest.postForEntity(url + "/add", new HttpEntity<>(new Student(student).setNew()), Long.class);
-        });
-
-        ResponseEntity<Long> getCountResponse = rest.getForEntity(url + "/stat/count", Long.class);
+        ResponseEntity<Long> getCountResponse = rest.getForEntity(
+                studentUrl + "/stat/count",
+                Long.class);
 
         Assertions.assertThat(getCountResponse).isNotNull();
         Assertions.assertThat(getCountResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -418,23 +358,26 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @DisplayName("Получение количества студентов -> количество получено")
     void whenGetAverageAgeOfStudents_thenReturnsExpectedAverage() {
 
-        final String url = baseUrl + "/school/student";
+        Assertions.assertThat(students).hasSizeGreaterThanOrEqualTo(2);
 
-        final Integer[] ages = {18, 19, 23, 27, 37};
-        Assertions.assertThat(ages).hasSize(students.length);
-
+        final Integer[] ages = new Integer[students.length];
+        int baseAge = 17;
+        int bias = 2;
+        for (int i = 0; i < ages.length; i++) {
+            ages[i] = baseAge++;
+            bias += 2;
+            baseAge += bias;
+        }
         final Iterator<Integer> agesIterator = (Arrays.asList(ages)).iterator();
-        Arrays.stream(students).forEach(student -> {
 
-            Student newStudent = new Student(student).setNew();
-            newStudent.setAge(agesIterator.next());
+        Arrays.stream(students).forEach(student ->
+                studentRepository.save(new Student(0L, student.getName(), agesIterator.next(), null)));
 
-            rest.postForEntity(url + "/add", new HttpEntity<>(newStudent), Long.class);
-        });
+        final Double averageAgeExpected = Arrays.stream(ages).mapToInt(i -> i).average().orElse(0.0);
 
-        final Double averageAgeExpected = Arrays.stream(ages).mapToInt(i -> i).average().orElseGet(() -> 0.0);
-
-        ResponseEntity<Double> getAverageResponse = rest.getForEntity(url + "/stat/age/average", Double.class);
+        ResponseEntity<Double> getAverageResponse = rest.getForEntity(
+                studentUrl + "/stat/age/average",
+                Double.class);
 
         Assertions.assertThat(getAverageResponse).isNotNull();
         Assertions.assertThat(getAverageResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -445,16 +388,15 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
     @DisplayName("Получение последних добавленных студентов -> список студентов получен")
     void whenGetLastStudents_thenReturnsExpectedListOfStudents() {
 
-        final String url = baseUrl + "/school/student";
+        Assertions.assertThat(students).hasSizeGreaterThanOrEqualTo(3);
         final int limit = 2;
 
-        Arrays.stream(students).forEach(student -> {
-            rest.postForEntity(url + "/add", new HttpEntity<>(new Student(student).setNew()), Long.class);
-        });
+        Arrays.stream(students).forEach(student ->
+                studentRepository.save(new Student(0L, student.getName(), student.getAge(), null)));
 
-        // Сначала получим список всех студентов, отсортируем его программно известным способом
+        // Сначала получим список всех студентов, отсортируем его известным способом
         // и возьмём из полученного массива последние limit элементов.
-        ResponseEntity<Student[]> getAllResponse = rest.getForEntity(url, Student[].class);
+        ResponseEntity<Student[]> getAllResponse = rest.getForEntity(studentUrl, Student[].class);
 
         Assertions.assertThat(getAllResponse).isNotNull();
         Assertions.assertThat(getAllResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -468,7 +410,9 @@ class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
 
         // Теперь получим список последних добавленных студентов
         // проверяемым способом.
-        ResponseEntity<Student[]> getLastResponse = rest.getForEntity(url + "/stat/last/" + limit, Student[].class);
+        ResponseEntity<Student[]> getLastResponse = rest.getForEntity(
+                studentUrl + "/stat/last/" + limit,
+                Student[].class);
 
         Assertions.assertThat(getLastResponse).isNotNull();
         Assertions.assertThat(getLastResponse.getStatusCode()).isEqualTo(HttpStatus.OK);

@@ -41,10 +41,4 @@ public class Student {
         id = 0;
         faculty = null;
     }
-
-    public Student setNew() {
-        id = 0;
-        faculty = null;
-        return this;
-    }
 }

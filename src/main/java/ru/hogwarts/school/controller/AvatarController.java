@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,20 +33,21 @@ import java.util.Optional;
 @RequestMapping(value = "/avatar")
 @Tag(name = "Аватары студентов")
 @RequiredArgsConstructor
+@SuppressWarnings("unused")
 public class AvatarController {
 
     private final AvatarService avatarService;
 
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Загрузка аватара студента. Возвращает id аватара")
-    @PostMapping(value = "/student/{studentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Long uploadAvatar(@PathVariable long studentId, @RequestParam MultipartFile avatar) {
+    @PostMapping(value = "/student/{studentId}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Long uploadAvatar(@PathVariable long studentId, @RequestParam("file") MultipartFile avatar) {
         return avatarService.uploadAvatar(studentId, avatar).getId();
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Удаление аватара студента")
-    @DeleteMapping(value = "/student/{studentId}")
+    @DeleteMapping(value = "/student/{studentId}/delete")
     public void deleteAvatar(@PathVariable long studentId) {
         avatarService.deleteAvatar(studentId);
     }
@@ -84,7 +86,7 @@ public class AvatarController {
         try {
             try (
                     InputStream is = Files.newInputStream(path);
-                    OutputStream os = response.getOutputStream();
+                    OutputStream os = response.getOutputStream()
             ) {
                 response.setContentLength((int) avatar.getFileSize());
                 response.setContentType(avatar.getMediaType());
@@ -102,5 +104,12 @@ public class AvatarController {
     @GetMapping
     public List<Avatar> getAllAvatars() {
         return avatarService.getAllAvatars();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение всех аватарок постранично. Нумерация страниц - от 1")
+    @GetMapping("/pages")
+    public Page<Avatar> getAllAvatarsPaginated(@RequestParam int page, @RequestParam int size) {
+        return avatarService.getAllAvatarsPaginated(page - 1, size);
     }
 }

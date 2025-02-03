@@ -44,10 +44,4 @@ public class Faculty {
         color = faculty.getColor();
         students = faculty.getStudents();
     }
-
-    public Faculty setNew() {
-        id = 0;
-        students = null;
-        return this;
-    }
 }

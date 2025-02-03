@@ -5,11 +5,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import ru.hogwarts.school.dto.ErrorResponse;
+import ru.hogwarts.school.dto.ErrorResponseDto;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 
 import java.util.Objects;
+import java.util.Random;
 
 public abstract class SchoolControllerBaseTest {
 
@@ -26,6 +27,40 @@ public abstract class SchoolControllerBaseTest {
             new Faculty(0, "Faculty of Science", "Deep Blue", null),
             new Faculty(0, "Faculty of Arts", "Smoky Brown", null)
     };
+
+    public static Student getNew(final Student student) {
+        return new Student(
+                0L,
+                student.getName(),
+                student.getAge(),
+                null);
+    }
+
+    public static Student getInserted(final Student student) {
+        var random = new Random();
+        return new Student(
+                random.nextLong(),
+                student.getName(),
+                student.getAge(),
+                null);
+    }
+
+    public Faculty getNew(final Faculty faculty) {
+        return new Faculty(
+                0L,
+                faculty.getName(),
+                faculty.getColor(),
+                null);
+    }
+
+    public Faculty getInserted(final Faculty faculty) {
+        var random = new Random();
+        return new Faculty(
+                random.nextLong(),
+                faculty.getName(),
+                faculty.getColor(),
+                null);
+    }
 
     public static String buildJson(Student student) {
         try {
@@ -71,7 +106,7 @@ public abstract class SchoolControllerBaseTest {
         Assertions.assertThat(response.getBody().getColor()).isEqualTo(faculty.getColor());
     }
 
-    public static void assertErrorResponse(ResponseEntity<ErrorResponse> errorResponse,
+    public static void assertErrorResponse(ResponseEntity<ErrorResponseDto> errorResponse,
                                            HttpStatus status, int code) {
         Assertions.assertThat(errorResponse).isNotNull();
         Assertions.assertThat(errorResponse.getStatusCode()).isEqualTo(status);

@@ -4,8 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import ru.hogwarts.school.dto.ErrorResponse;
+import ru.hogwarts.school.dto.ErrorResponseDto;
 import ru.hogwarts.school.exception.avatar.BadAvatarDataException;
 import ru.hogwarts.school.exception.avatar.BadAvatarFileNameException;
 import ru.hogwarts.school.exception.avatar.BadAvatarSizeException;
@@ -16,39 +15,45 @@ import ru.hogwarts.school.exception.avatar.NullAvatarFileException;
 @ControllerAdvice
 public class AvatarControllerAdvice extends AbstractBaseControllerAdvice {
 
+    @SuppressWarnings("unused")
     @ExceptionHandler(BadAvatarDataException.class)
-    public ResponseEntity<ErrorResponse> handleBadAvatarDataException(BadAvatarDataException e) {
-        return new ResponseEntity<>(new ErrorResponse(BadAvatarDataException.CODE, e.getMessage()),
+    public ResponseEntity<ErrorResponseDto> handleBadAvatarDataException(BadAvatarDataException e) {
+        return new ResponseEntity<>(new ErrorResponseDto(BadAvatarDataException.CODE, e.getMessage()),
                 HttpStatus.NOT_ACCEPTABLE);
     }
 
+    @SuppressWarnings("unused")
     @ExceptionHandler(BadAvatarFileNameException.class)
-    public ResponseEntity<ErrorResponse> handleBadAvatarFileNameException(BadAvatarFileNameException e) {
-        return new ResponseEntity<>(new ErrorResponse(BadAvatarFileNameException.CODE, e.getMessage()),
+    public ResponseEntity<ErrorResponseDto> handleBadAvatarFileNameException(BadAvatarFileNameException e) {
+        return new ResponseEntity<>(new ErrorResponseDto(BadAvatarFileNameException.CODE, e.getMessage()),
                 HttpStatus.NOT_ACCEPTABLE);
     }
 
+    @SuppressWarnings("unused")
     @ExceptionHandler(BadAvatarSizeException.class)
-    public ResponseEntity<ErrorResponse> handleBadAvatarSizeException(BadAvatarSizeException e) {
-        return new ResponseEntity<>(new ErrorResponse(BadAvatarSizeException.CODE, e.getMessage()),
+    public ResponseEntity<ErrorResponseDto> handleBadAvatarSizeException(BadAvatarSizeException e) {
+        return new ResponseEntity<>(new ErrorResponseDto(BadAvatarSizeException.CODE, e.getMessage()),
                 HttpStatus.NOT_ACCEPTABLE);
     }
 
+    @SuppressWarnings("unused")
     @ExceptionHandler(FailedBuildAvatarFileNameException.class)
-    public ResponseEntity<ErrorResponse> handleFailedBuildAvatarFileNameException(FailedBuildAvatarFileNameException e) {
-        return new ResponseEntity<>(new ErrorResponse(FailedBuildAvatarFileNameException.CODE, e.getMessage()),
+    public ResponseEntity<ErrorResponseDto> handleFailedBuildAvatarFileNameException(FailedBuildAvatarFileNameException e) {
+        return new ResponseEntity<>(new ErrorResponseDto(FailedBuildAvatarFileNameException.CODE, e.getMessage()),
                 HttpStatus.BAD_REQUEST);
     }
 
+    @SuppressWarnings("unused")
     @ExceptionHandler(IOAvatarFileException.class)
-    public ResponseEntity<ErrorResponse> handleIOAvatarFileException(IOAvatarFileException e) {
-        return new ResponseEntity<>(new ErrorResponse(IOAvatarFileException.CODE, e.getMessage()),
+    public ResponseEntity<ErrorResponseDto> handleIOAvatarFileException(IOAvatarFileException e) {
+        return new ResponseEntity<>(new ErrorResponseDto(IOAvatarFileException.CODE, e.getMessage()),
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @SuppressWarnings("unused")
     @ExceptionHandler(NullAvatarFileException.class)
-    public ResponseEntity<ErrorResponse> handleNullAvatarFileException(NullAvatarFileException e) {
-        return new ResponseEntity<>(new ErrorResponse(NullAvatarFileException.CODE, e.getMessage()),
+    public ResponseEntity<ErrorResponseDto> handleNullAvatarFileException(NullAvatarFileException e) {
+        return new ResponseEntity<>(new ErrorResponseDto(NullAvatarFileException.CODE, e.getMessage()),
                 HttpStatus.BAD_REQUEST);
     }
 }
