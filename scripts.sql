@@ -5,8 +5,8 @@
 --4. Получить всех студентов, у которых возраст меньше идентификатора.
 --5. Получить всех студентов упорядоченных по возрасту.
 
-select * from student where age between 10 and 20;
-select name from student;
-select * from student where name like '%O%';
-select * from student where age < id;
-select * from student order by age;
+SELECT * FROM student WHERE age BETWEEN 10 and 20;
+SELECT name FROM student;
+SELECT * FROM student WHERE name LIKE '%O%';
+SELECT * FROM student WHERE age < id;
+SELECT * FROM student ORDER BY age;
