@@ -12,7 +12,7 @@
 -- Плагин DB Browser для IDEA Community на таких запросах начинает ошибаться.
 
 -- ТС
-create TABLE Vehicle (
+CREATE TABLE vehicle (
     id SERIAL PRIMARY KEY,
     brand VARCHAR(50) NOT NULL CHECK (LENGTH(brand) BETWEEN 3 AND 50),
     model VARCHAR(50) NOT NULL CHECK (LENGTH(model) BETWEEN 1 AND 50),
@@ -21,69 +21,49 @@ create TABLE Vehicle (
 );
 
 -- Водитель
-create TABLE Driver (
+CREATE TABLE driver (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE CHECK (LENGTH(name) BETWEEN 1 AND 50),
     age INT NOT NULL CHECK (age >= 18),
     have_license BOOLEAN NOT NULL
 );
 
--- CREATE TABLE Rent (
---     id SERIAL PRIMARY KEY,
---     vehicle_id INT NOT NULL REFERENCES Vehicle(id),
---     driver_id INT NOT NULL REFERENCES Driver(id),
---     UNIQUE (vehicle_id, driver_id)
--- );
-
 -- ТС и их автомобили (многие-ко-многим)
-create TABLE Vehicle_Driver (
+CREATE TABLE vehicle_driver (
     vehicle_id INT NOT NULL,
     driver_id INT NOT NULL,
-    PRIMARY KEY (vehicle_id, driver_id),  -- Составной первичный ключ
-    FOREIGN KEY (vehicle_id) REFERENCES Vehicle(id),
-    FOREIGN KEY (driver_id) REFERENCES Driver(id)
+    PRIMARY KEY (vehicle_id, driver_id),
+    FOREIGN KEY (vehicle_id) REFERENCES vehicle(id),
+    FOREIGN KEY (driver_id) REFERENCES driver(id)
 );
 
-insert into Vehicle (brand, model, price) values ('BrandA', 'Model A', '50000');
-insert into Vehicle (brand, model, price) values ('BrandA', 'Model B', '30000');
-insert into Vehicle (brand, model, price) values ('BrandA', 'Model Y', '80000');
+INSERT INTO vehicle (brand, model, price) VALUES ('BrandA', 'Model A', '50000');
+INSERT INTO vehicle (brand, model, price) VALUES ('BrandA', 'Model B', '30000');
+INSERT INTO vehicle (brand, model, price) VALUES ('BrandA', 'Model Y', '80000');
 
-insert into Vehicle (brand, model, price) values ('BrandB', 'Model A', '123000');
-insert into Vehicle (brand, model, price) values ('BrandB', 'model Z350', '370000');
+INSERT INTO vehicle (brand, model, price) VALUES ('BrandB', 'Model A', '123000');
+INSERT INTO vehicle (brand, model, price) VALUES ('BrandB', 'model Z350', '370000');
 
-insert into Vehicle (brand, model, price) values ('BrandF', 'Model 150', '45000');
-insert into Vehicle (brand, model, price) values ('BrandF', 'model 250', '60000');
+INSERT INTO vehicle (brand, model, price) VALUES ('BrandF', 'Model 150', '45000');
+INSERT INTO vehicle (brand, model, price) VALUES ('BrandF', 'model 250', '60000');
 
--- ошибка вставки
---insert into Vehicle (brand, model, price) values ('BrandF', 'model 250', '60000');
+INSERT INTO driver (name, age, have_license) VALUES ('Иван', '18', 'false');
+INSERT INTO driver (name, age, have_license) VALUES ('Потап', '19', 'true');
+INSERT INTO driver (name, age, have_license) VALUES ('Прокл', '20', 'true');
+INSERT INTO driver (name, age, have_license) VALUES ('Свистоперд', '38', 'true');
+INSERT INTO driver (name, age, have_license) VALUES ('Святожуй', '35', 'true');
+INSERT INTO driver (name, age, have_license) VALUES ('Амвросий', '48', 'true');
+INSERT INTO driver (name, age, have_license) VALUES ('Амвруаз', '88', 'false');
 
-insert into Driver (name, age, have_license) values ('Иван', '18', 'false');
-insert into Driver (name, age, have_license) values ('Потап', '19', 'true');
-insert into Driver (name, age, have_license) values ('Прокл', '20', 'true');
-insert into Driver (name, age, have_license) values ('Свистоперд', '38', 'true');
-insert into Driver (name, age, have_license) values ('Святожуй', '35', 'true');
-insert into Driver (name, age, have_license) values ('Амвросий', '48', 'true');
-insert into Driver (name, age, have_license) values ('Амвруаз', '88', 'false');
+INSERT INTO vehicle_driver (vehicle_id, driver_id) VALUES ('1', '2');
+INSERT INTO vehicle_driver (vehicle_id, driver_id) VALUES ('1', '4');
+INSERT INTO vehicle_driver (vehicle_id, driver_id) VALUES ('1', '7');
 
--- ошибка вставки
---insert into Driver (name, age, have_license) values ('Амвросий', '49', 'true');
+INSERT INTO vehicle_driver (vehicle_id, driver_id) VALUES ('5', '2');
+INSERT INTO vehicle_driver (vehicle_id, driver_id) VALUES ('5', '4');
+INSERT INTO vehicle_driver (vehicle_id, driver_id) VALUES ('7', '1');
 
-select * from Vehicle;
-select * from Driver;
-
-insert into Vehicle_Driver (vehicle_id, driver_id) values ('1', '2');
-insert into Vehicle_Driver (vehicle_id, driver_id) values ('1', '4');
-insert into Vehicle_Driver (vehicle_id, driver_id) values ('1', '7');
-
-insert into Vehicle_Driver (vehicle_id, driver_id) values ('5', '2');
-insert into Vehicle_Driver (vehicle_id, driver_id) values ('5', '4');
-insert into Vehicle_Driver (vehicle_id, driver_id) values ('7', '1');
-
--- ошибка вставки
---insert into Vehicle_Driver (vehicle_id, driver_id) values ('1', '666');
-
---select * from Vehicle_Driver;
-select
+SELECT
     vd.vehicle_id,
     v.brand,
     v.model,
@@ -92,11 +72,9 @@ select
     d.name,
     d.age,
     d.have_license
-from
-    Vehicle_Driver vd
-inner join
-    Vehicle v on vd.vehicle_id = v.id
-inner join
-    Driver d on vd.driver_id = d.id;
--- WHERE
--- 	d.have_license = 'true';
+FROM
+    vehicle_driver vd
+INNER JOIN
+    vehicle v on vd.vehicle_id = v.id
+INNER JOIN
+    driver d on vd.driver_id = d.id;

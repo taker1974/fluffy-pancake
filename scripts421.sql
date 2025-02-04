@@ -11,7 +11,7 @@
 -- Плагин DB Browser для IDEA Community на таких запросах начинает ошибаться.
 
 ALTER TABLE student ADD CONSTRAINT age_min_constraint CHECK (age >= 16);
-ALTER TABLE Student ALTER COLUMN age SET DEFAULT 20;
+ALTER TABLE student ALTER COLUMN age SET DEFAULT 20;
 
 ALTER TABLE student ALTER COLUMN name SET NOT NULL;
 ALTER TABLE student ADD CONSTRAINT name_unique_constraint UNIQUE (name);

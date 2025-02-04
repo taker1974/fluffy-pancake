@@ -7,22 +7,22 @@
 -- Всё тестировалось в PgAdmin 4.
 -- Плагин DB Browser для IDEA Community на таких запросах начинает ошибаться.
 
-insert into faculty (name, color) values ('Faculty 01', 'Red');
-insert into faculty (name, color) values ('Faculty 02', 'Green');
-insert into faculty (name, color) values ('Faculty 03', 'Blue');
+INSERT INTO faculty (name, color) VALUES ('Faculty 01', 'Red');
+INSERT INTO faculty (name, color) VALUES ('Faculty 02', 'Green');
+INSERT INTO faculty (name, color) VALUES ('Faculty 03', 'Blue');
 
-insert into student(name) values('name 1');
-insert into student(name) values('name 3');
-insert into student(name) values('name 4');
-insert into student(name) values('name 5');
-insert into student(name) values('name 6');
+INSERT INTO student(name) VALUES('name 1');
+INSERT INTO student(name) VALUES('name 3');
+INSERT INTO student(name) VALUES('name 4');
+INSERT INTO student(name) VALUES('name 5');
+INSERT INTO student(name) VALUES('name 6');
 
-update student set faculty_id='1' where name='name 1';
-update student set faculty_id='1' where name='name 4';
-update student set faculty_id='3' where name='name 3';
+UPDATE student SET faculty_id='1' WHERE name='name 1';
+UPDATE student SET faculty_id='1' WHERE name='name 4';
+UPDATE student SET faculty_id='3' WHERE name='name 3';
 
-select * from faculty;
-select * from student;
+SELECT * FROM faculty;
+SELECT * FROM student;
 
 -- Первый JOIN-запрос
 SELECT
@@ -30,7 +30,7 @@ SELECT
     s.name,
     s.age,
     s.avatar_id,
-    f.name
+    f.name AS faculty_name
 FROM
     student s
 INNER JOIN
@@ -42,7 +42,7 @@ SELECT
     s.name,
     s.age,
 	s.avatar_id,
-    f.name
+    f.name AS faculty_name
 FROM
     student s
 INNER JOIN
