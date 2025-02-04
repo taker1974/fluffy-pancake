@@ -28,7 +28,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/avatar")
@@ -57,6 +56,7 @@ public class AvatarController {
     @Operation(summary = "Загрузка аватара студента из базы данных")
     @GetMapping(value = "/student/db/{studentId}")
     public ResponseEntity<byte[]> downloadAvatarFromDb(@PathVariable long studentId) {
+
         final Avatar avatar = avatarService.getAvatar(studentId).orElseThrow(AvatarNotFoundException::new);
 
         HttpHeaders headers = new HttpHeaders();
