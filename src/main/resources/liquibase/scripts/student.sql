@@ -13,4 +13,3 @@
 
 -- changeset kostusonline:1
 CREATE INDEX student_name_index ON student (name);
-CREATE INDEX users_sh_idx ON users (street, house);
