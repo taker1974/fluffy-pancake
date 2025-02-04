@@ -14,6 +14,7 @@ import ru.hogwarts.school.exception.avatar.FailedBuildAvatarFileNameException;
 import ru.hogwarts.school.exception.avatar.IOAvatarFileException;
 import ru.hogwarts.school.exception.avatar.NullAvatarFileException;
 import ru.hogwarts.school.exception.student.StudentNotFoundException;
+import ru.hogwarts.school.exception.avatar.AvatarNotFoundException;
 import ru.hogwarts.school.model.Avatar;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repository.AvatarRepository;
@@ -133,11 +134,8 @@ public class AvatarService {
     @Transactional
     public void deleteAvatar(long studentId) {
 
-        final Optional<Avatar> optionalAvatar = avatarRepository.findByStudentId(studentId);
-        if (optionalAvatar.isEmpty()) {
-            return;
-        }
-        final Avatar avatar = optionalAvatar.get();
+        final Avatar avatar = avatarRepository.findByStudentId(studentId)
+                .orElseThrow(AvatarNotFoundException::new);
 
         avatarRepository.delete(avatar);
 
