@@ -2,6 +2,8 @@ package ru.hogwarts.school.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,6 +36,7 @@ import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("unused")
 public class AvatarService {
 
     @Value("${avatars.path}")
@@ -92,8 +95,6 @@ public class AvatarService {
 
         Path filePath = Path.of(avatarsPath, fileName);
 
-        avatarRepository.save(avatar);
-
         avatar.setFilePath(filePath.toString());
         avatar.setFileSize(avatarFile.getSize());
         avatar.setMediaType(avatarFile.getContentType());
@@ -105,6 +106,8 @@ public class AvatarService {
             throw new BadAvatarDataException();
         }
 
+        avatarRepository.save(avatar);
+
         try {
             Files.createDirectories(filePath.getParent());
             Files.deleteIfExists(filePath);
@@ -112,7 +115,7 @@ public class AvatarService {
                     InputStream is = avatarFile.getInputStream();
                     OutputStream os = Files.newOutputStream(filePath, CREATE_NEW);
                     BufferedInputStream bis = new BufferedInputStream(is, avatarIoBufferSize);
-                    BufferedOutputStream bos = new BufferedOutputStream(os, avatarIoBufferSize);
+                    BufferedOutputStream bos = new BufferedOutputStream(os, avatarIoBufferSize)
             ) {
                 bis.transferTo(bos);
             }
@@ -148,5 +151,11 @@ public class AvatarService {
     @Transactional
     public List<Avatar> getAllAvatars() {
         return avatarRepository.findAll();
+    }
+
+    @Transactional
+    public Page<Avatar> getAllAvatarsPaginated(int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return avatarRepository.findAll(pageRequest);
     }
 }

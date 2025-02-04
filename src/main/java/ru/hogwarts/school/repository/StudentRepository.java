@@ -5,14 +5,19 @@ import org.springframework.data.jpa.repository.Query;
 import ru.hogwarts.school.model.Student;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface StudentRepository extends JpaRepository<Student, Long> {
-
-    @Query("SELECT s FROM Student s JOIN FETCH s.faculty WHERE s.id=:id")
-    Optional<Student> findWithJoinFetch(long id);
 
     List<Student> findByAge(int age);
 
     List<Student> findByAgeBetween(int fromAge, int toAge);
+
+    @Query(value = "SELECT COUNT(id) FROM Student", nativeQuery = true)
+    long getCountOfStudents();
+
+    @Query(value = "SELECT AVG(age) FROM Student", nativeQuery = true)
+    double getAverageAgeOfStudents();
+
+    @Query(value = "SELECT * FROM Student s ORDER BY s.id DESC LIMIT :limit", nativeQuery = true)
+    List<Student> getLastStudentsById(Integer limit);
 }

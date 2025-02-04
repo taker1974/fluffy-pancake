@@ -25,6 +25,7 @@ import java.util.List;
 @RequestMapping(value = "/student")
 @Tag(name = "Студенты")
 @RequiredArgsConstructor
+@SuppressWarnings("unused")
 public class StudentController {
 
     private final StudentService studentService;
@@ -53,7 +54,7 @@ public class StudentController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Удаление существующего студента по id")
-    @DeleteMapping(value = "/delete/{id}")
+    @DeleteMapping(value = "/{id}/delete")
     public void deleteStudent(@PathVariable long id) {
         studentService.deleteStudent(id);
     }
@@ -74,9 +75,9 @@ public class StudentController {
 
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Сброс факультета для студента studentId")
-    @PatchMapping(value = "/{studentId}/faculty/reset")
-    public void resetFaculty(@PathVariable long studentId) {
-        studentService.resetFaculty(studentId);
+    @PatchMapping(value = "/{id}/faculty/reset")
+    public void resetFaculty(@PathVariable long id) {
+        studentService.resetFaculty(id);
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -98,5 +99,26 @@ public class StudentController {
     @GetMapping(value = "/filter/age/between")
     public List<Student> findStudentsByAgeBetween(int fromAge, int toAge) {
         return studentService.findStudentsByAgeBetween(fromAge, toAge);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение количества студентов")
+    @GetMapping(value = "/stat/count")
+    public Long getCountOfStudents() {
+        return studentService.getCountOfStudents();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение среднего возраста студентов")
+    @GetMapping(value = "/stat/age/average")
+    public Double getAverageAgeOfStudents() {
+        return studentService.getAverageAgeOfStudents();
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение последних :limit добавленных студентов")
+    @GetMapping(value = "/stat/last/{limit}")
+    public List<Student> getLastStudentsById(@PathVariable int limit) {
+        return studentService.getLastStudentsById(limit);
     }
 }
