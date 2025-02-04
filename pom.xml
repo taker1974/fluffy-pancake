@@ -57,6 +57,11 @@
             <version>42.7.4</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
+
         <!-- Apache Commons IO (файлы, фильтры, потоки и т.д.)-->
         <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
         <dependency>
