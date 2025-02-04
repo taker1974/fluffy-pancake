@@ -33,7 +33,7 @@ import java.util.Optional;
 import static ru.hogwarts.school.tools.StringEx.replace;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test-h2")
+@ActiveProfiles("test-pg")
 class StudentControllerIntegrityTest extends SchoolControllerBaseTest {
 
     private final StudentController studentController;

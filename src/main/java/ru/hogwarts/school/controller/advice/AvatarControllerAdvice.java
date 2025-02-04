@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.hogwarts.school.dto.ErrorResponseDto;
+import ru.hogwarts.school.exception.avatar.AvatarNotFoundException;
 import ru.hogwarts.school.exception.avatar.BadAvatarDataException;
 import ru.hogwarts.school.exception.avatar.BadAvatarFileNameException;
 import ru.hogwarts.school.exception.avatar.BadAvatarSizeException;
@@ -14,6 +15,13 @@ import ru.hogwarts.school.exception.avatar.NullAvatarFileException;
 
 @ControllerAdvice
 public class AvatarControllerAdvice extends AbstractBaseControllerAdvice {
+
+    @SuppressWarnings("unused")
+    @ExceptionHandler(AvatarNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleBadAvatarNotFoundException(AvatarNotFoundException e) {
+        return new ResponseEntity<>(new ErrorResponseDto(AvatarNotFoundException.CODE, e.getMessage()),
+                HttpStatus.NOT_FOUND);
+    }
 
     @SuppressWarnings("unused")
     @ExceptionHandler(BadAvatarDataException.class)
