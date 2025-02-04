@@ -12,8 +12,6 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -39,8 +37,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Objects;
 
-import org.springframework.core.ParameterizedTypeReference;
-
 import static ru.hogwarts.school.tools.StringEx.replace;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -53,6 +49,7 @@ class AvatarControllerIntegrityTest extends SchoolControllerBaseTest {
     public static final String IMAGE_NAME_ORIGINAL = "test-upload-200x30.jpg";
     public static final String IMAGE_PATH = IMAGE_PATH_ORIGINAL + "/" + IMAGE_NAME_ORIGINAL;
 
+    @SuppressWarnings("unused")
     @Value("${avatars.path}")
     private String avatarsPath;
 
@@ -172,7 +169,7 @@ class AvatarControllerIntegrityTest extends SchoolControllerBaseTest {
                 Assertions.assertThat(uploadAvatar(getImagePath(), student)).isEqualTo(student.getId()));
 
         Arrays.stream(studentsLoaded).forEach(student ->
-                Assertions.assertThat(avatarRepository.findByStudentId(student.getId()).isPresent()).isTrue());
+                Assertions.assertThat(avatarRepository.findByStudentId(student.getId())).isPresent());
     }
 
     @Test
