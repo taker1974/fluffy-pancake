@@ -1,6 +1,8 @@
 package ru.hogwarts.school.service;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +22,7 @@ import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repository.AvatarRepository;
 import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.tools.FilesEx;
+import ru.hogwarts.school.tools.LogEx;
 import ru.hogwarts.school.tools.StringEx;
 
 import java.io.BufferedInputStream;
@@ -40,6 +43,10 @@ import static java.nio.file.StandardOpenOption.CREATE_NEW;
 @SuppressWarnings("unused")
 public class AvatarService {
 
+    public static final String STUDENT_ID_PREFIX = "studentId = ";
+
+    Logger log = LoggerFactory.getLogger(AvatarService.class);
+
     @Value("${avatars.path}")
     private String avatarsPath;
 
@@ -57,6 +64,7 @@ public class AvatarService {
 
     @Transactional
     public Avatar uploadAvatar(long studentId, MultipartFile avatarFile) {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING, STUDENT_ID_PREFIX + studentId);
 
         final Student student = studentRepository.findById(studentId)
                 .orElseThrow(StudentNotFoundException::new);
@@ -64,6 +72,9 @@ public class AvatarService {
         if (avatarFile == null) {
             throw new NullAvatarFileException();
         }
+
+        LogEx.trace(log, LogEx.getThisMethodName(),
+                "avatarFile.getOriginalFilename() = " + avatarFile.getOriginalFilename());
 
         long avatarSize = avatarFile.getSize();
         if (avatarFile.isEmpty() || avatarSize < avatarSizeMin || avatarSize > avatarSizeMax) {
@@ -124,15 +135,18 @@ public class AvatarService {
             throw new IOAvatarFileException();
         }
 
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPING);
         return avatar;
     }
 
     public Optional<Avatar> getAvatar(long studentId) {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.SHORT_RUN, STUDENT_ID_PREFIX + studentId);
         return avatarRepository.findByStudentId(studentId);
     }
 
     @Transactional
     public void deleteAvatar(long studentId) {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING, STUDENT_ID_PREFIX + studentId);
 
         final Avatar avatar = avatarRepository.findByStudentId(studentId)
                 .orElseThrow(AvatarNotFoundException::new);
@@ -144,16 +158,23 @@ public class AvatarService {
         } catch (IOException e) {
             throw new IOAvatarFileException();
         }
+
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPED);
     }
 
     @Transactional
     public List<Avatar> getAllAvatars() {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.SHORT_RUN);
         return avatarRepository.findAll();
     }
 
     @Transactional
     public Page<Avatar> getAllAvatarsPaginated(int page, int size) {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING, "page = " + page + ", size = " + size);
+
         PageRequest pageRequest = PageRequest.of(page, size);
+
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPING);
         return avatarRepository.findAll(pageRequest);
     }
 }

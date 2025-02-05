@@ -32,6 +32,8 @@ public class LogEx {
     public static final String STOPPED = "завершён";
     public static final String SHORT_RUN = "запускается и завершается";
 
+    public static final String EXCEPTION_THROWN = "выброшено исключение";
+
     private LogEx() {
     }
 

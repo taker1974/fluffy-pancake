@@ -1,7 +1,5 @@
 databaseChangeLog:
   - include:
-      file: liquibase/scripts/logging.sql
-  - include:
       file: liquibase/scripts/student.sql
   - include:
       file: liquibase/scripts/faculty.sql
