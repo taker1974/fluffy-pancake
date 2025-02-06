@@ -1,13 +1,11 @@
-<!--https://howtodoinjava.com/logback/logback-xml-examples/-->
-
 <configuration>
 
     <property name="LOG_ROOT" value="c:/temp/logs"/>
     <property name="LOG_APP_NAME" value="school"/>
 
-    <springProperty name="SPRING_DATASOURCE_URL" source="spring.datasource.url"/>
-    <springProperty name="SPRING_DATASOURCE_USERNAME" source="spring.datasource.username"/>
-    <springProperty name="SPRING_DATASOURCE_PASSWORD" source="spring.datasource.password"/>
+    <springProperty name="SPRING_DATASOURCE_URL" source="spring.log.datasource.url"/>
+    <springProperty name="SPRING_DATASOURCE_USERNAME" source="spring.log.datasource.username"/>
+    <springProperty name="SPRING_DATASOURCE_PASSWORD" source="spring.log.datasource.password"/>
 
     <appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
         <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
@@ -16,8 +14,6 @@
             <user>${SPRING_DATASOURCE_USERNAME}</user>
             <password>${SPRING_DATASOURCE_PASSWORD}</password>
         </connectionSource>
-
-        <sqlDialect class="ch.qos.logback.core.db.dialect.PostgreSQLDialect"/>
     </appender>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -46,6 +42,7 @@
     <logger name="ru.hogwarts.school.controller.advice" level="TRACE">
         <appender-ref ref="DB"/>
     </logger>
+
     <logger name="ru.hogwarts.school.service" level="TRACE">
         <appender-ref ref="DB"/>
     </logger>
