@@ -5,6 +5,32 @@
     <property name="LOG_ROOT" value="c:/temp/logs"/>
     <property name="LOG_APP_NAME" value="school"/>
 
+    <!--                spring.datasource.url=jdbc:postgresql://localhost:5432/SCHOOL-->
+    <!--                spring.datasource.username=schooladmin-->
+    <!--                spring.datasource.password=12345678-->
+
+    <springProperty name="SPRING_DATASOURCE_URL" source="spring.datasource.url"/>
+    <springProperty name="SPRING_DATASOURCE_USERNAME" source="spring.datasource.username"/>
+    <springProperty name="SPRING_DATASOURCE_PASSWORD" source="spring.datasource.password"/>
+
+    <appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
+        <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+            <driverClass>org.postgresql.Driver</driverClass>
+            <url>${SPRING_DATASOURCE_URL}</url>
+            <user>${SPRING_DATASOURCE_USERNAME}</user>
+            <password>${SPRING_DATASOURCE_PASSWORD}</password>
+        </connectionSource>
+
+        <sqlDialect class="ch.qos.logback.core.db.dialect.PostgreSQLDialect"/>
+
+        <!--        <sqlDialect class="ch.qos.logback.core.db.dialect.PostgreSQLDialect"/>-->
+        <!--        <insertHeaders>true</insertHeaders>-->
+        <!--        <columnMap>-->
+        <!--            <default/>-->
+        <!--            <entry key="timestamp" value="CURRENT_TIMESTAMP"/>-->
+        <!--        </columnMap>-->
+    </appender>
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
@@ -28,7 +54,14 @@
         </encoder>
     </appender>
 
-    <root level="ERROR">
+    <logger name="ru.hogwarts.school.controller.advice" level="TRACE">
+        <appender-ref ref="DB"/>
+    </logger>
+    <logger name="ru.hogwarts.school.service" level="TRACE">
+        <appender-ref ref="DB"/>
+    </logger>
+
+    <root level="WARN">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="ASYNC_FILE"/>
     </root>
