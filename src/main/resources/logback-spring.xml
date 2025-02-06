@@ -5,10 +5,6 @@
     <property name="LOG_ROOT" value="c:/temp/logs"/>
     <property name="LOG_APP_NAME" value="school"/>
 
-    <!--                spring.datasource.url=jdbc:postgresql://localhost:5432/SCHOOL-->
-    <!--                spring.datasource.username=schooladmin-->
-    <!--                spring.datasource.password=12345678-->
-
     <springProperty name="SPRING_DATASOURCE_URL" source="spring.datasource.url"/>
     <springProperty name="SPRING_DATASOURCE_USERNAME" source="spring.datasource.username"/>
     <springProperty name="SPRING_DATASOURCE_PASSWORD" source="spring.datasource.password"/>
@@ -22,13 +18,6 @@
         </connectionSource>
 
         <sqlDialect class="ch.qos.logback.core.db.dialect.PostgreSQLDialect"/>
-
-        <!--        <sqlDialect class="ch.qos.logback.core.db.dialect.PostgreSQLDialect"/>-->
-        <!--        <insertHeaders>true</insertHeaders>-->
-        <!--        <columnMap>-->
-        <!--            <default/>-->
-        <!--            <entry key="timestamp" value="CURRENT_TIMESTAMP"/>-->
-        <!--        </columnMap>-->
     </appender>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
