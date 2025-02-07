@@ -108,6 +108,14 @@ public class StudentController {
         return studentService.getCountOfStudents();
     }
 
+    /**
+     * Шаг 2 (Модификация уже существующего эндпоинта)
+     * <p>
+     * Создать эндпоинт, который будет возвращать средний возраст всех студентов. Для получения информации о всех
+     * студентах опять же следует использовать метод репозитория findAll()
+     *
+     * @return средний возраст всех студентов
+     */
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Получение среднего возраста студентов")
     @GetMapping(value = "/stat/age/average")

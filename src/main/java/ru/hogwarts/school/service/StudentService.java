@@ -124,7 +124,15 @@ public class StudentService {
      */
     public double getAverageAgeOfStudents() {
         LogEx.trace(log, LogEx.getThisMethodName(), LogEx.SHORT_RUN);
-        return studentRepository.getAverageAgeOfStudents();
+
+        // Это неверный способ.
+        // Для повышения производительности надо считать среднее по каждому куску стрима,
+        // и затем считать среднее от суммы таких средних.
+        // Я не знаю, как это сделать.
+        return studentRepository.findAll()
+                .parallelStream()
+                .mapToInt(Student::getAge)
+                .average().orElse(0.0);
     }
 
     /**
