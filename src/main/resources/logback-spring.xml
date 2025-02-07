@@ -1,0 +1,55 @@
+<configuration>
+
+    <property name="LOG_ROOT" value="c:/temp/logs"/>
+    <property name="LOG_APP_NAME" value="school"/>
+
+    <springProperty name="SPRING_DATASOURCE_URL" source="spring.log.datasource.url"/>
+    <springProperty name="SPRING_DATASOURCE_USERNAME" source="spring.log.datasource.username"/>
+    <springProperty name="SPRING_DATASOURCE_PASSWORD" source="spring.log.datasource.password"/>
+
+    <appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
+        <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+            <driverClass>org.postgresql.Driver</driverClass>
+            <url>${SPRING_DATASOURCE_URL}</url>
+            <user>${SPRING_DATASOURCE_USERNAME}</user>
+            <password>${SPRING_DATASOURCE_PASSWORD}</password>
+        </connectionSource>
+    </appender>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE"/>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${LOG_ROOT}/${LOG_APP_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_ROOT}/${LOG_APP_NAME}-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>1MB</maxFileSize>
+            <maxHistory>10</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="ru.hogwarts.school.controller.advice" level="TRACE">
+        <appender-ref ref="DB"/>
+    </logger>
+
+    <logger name="ru.hogwarts.school.service" level="TRACE">
+        <appender-ref ref="DB"/>
+    </logger>
+
+    <root level="WARN">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="ASYNC_FILE"/>
+    </root>
+
+</configuration>

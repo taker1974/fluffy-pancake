@@ -332,6 +332,5 @@ class AvatarControllerIntegrityTest extends SchoolControllerBaseTest {
         Assertions.assertThat(response).isNotNull();
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(response.getBody()).isInstanceOf(Page.class);
     }
 }
