@@ -138,4 +138,22 @@ public class StudentController {
     public void deleteTestStudents() {
         studentService.removeTestStudents();
     }
+
+    /**
+     * Шаг 1
+     * <p>
+     * Добавить эндпоинт для получения всех имен всех студентов, чье имя начинается с буквы А. В ответе должен
+     * находиться отсортированный в алфавитном порядке список с именами в верхнем регистре.
+     * Для получения всех студентов из базы использовать метод репозитория findAll().
+     *
+     * @param letter начальный символ имени
+     * @return список с именами студентов
+     */
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение списка студентов с именами на букву letter. Возвращает отсортированный список " +
+            "имён в верхнем регистре")
+    @GetMapping(value = "/starts/with/{letter}")
+    public List<String> getStudentsByLetter(@PathVariable String letter) {
+        return studentService.getStudentNames(letter);
+    }
 }

@@ -21,6 +21,9 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     @Query(value = "SELECT * FROM student s ORDER BY s.id DESC LIMIT :limit", nativeQuery = true)
     List<Student> getLastStudentsById(Integer limit);
 
-    @Query(value = "SELECT * FROM student s WHERE lower(s.name) LIKE lower(%:suffix)", nativeQuery = true)
+    @Query(value = "SELECT * FROM student s WHERE LOWER(s.name) LIKE LOWER(%:suffix)", nativeQuery = true)
     List<Student> findByNameSuffix(String suffix);
+
+    @Query(value = "SELECT * FROM student s WHERE LOWER(s.name) LIKE LOWER(:letter%)", nativeQuery = true)
+    List<Student> findByNameStartsWith(String letter);
 }
