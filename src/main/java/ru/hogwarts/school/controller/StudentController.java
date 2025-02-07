@@ -121,4 +121,21 @@ public class StudentController {
     public List<Student> getLastStudentsById(@PathVariable int limit) {
         return studentService.getLastStudentsById(limit);
     }
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Добавление n студентов для тестов. Возвращает количество добавленных студентов")
+    @PostMapping("/test/add")
+    public Integer addTestStudents(int count,
+                                   int minNameLength, int maxNameLength,
+                                   int minAge, int maxAge) {
+
+        return studentService.addTestStudents(count, minNameLength, maxNameLength, minAge, maxAge);
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Удаление студентов, созданных для тестов")
+    @DeleteMapping("/test/delete")
+    public void deleteTestStudents() {
+        studentService.removeTestStudents();
+    }
 }

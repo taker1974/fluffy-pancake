@@ -8,12 +8,14 @@ import ru.hogwarts.school.exception.student.NullStudentException;
 import ru.hogwarts.school.exception.student.StudentAlreadyExistsException;
 import ru.hogwarts.school.exception.student.StudentNotFoundException;
 import ru.hogwarts.school.model.Faculty;
+import ru.hogwarts.school.model.NameGenerator;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.tools.LogEx;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -131,5 +133,55 @@ public class StudentService {
     public List<Student> getLastStudentsById(int limit) {
         LogEx.trace(log, LogEx.getThisMethodName(), LogEx.SHORT_RUN, "limit = " + limit);
         return studentRepository.getLastStudentsById(limit);
+    }
+
+    public static final int ADD_TEST_LIMIT = 100_000;
+    public static final String TEST_NAME_SUFFIX = " [gen]";
+    public static final int MIN_NAME_LENGTH = 2;
+    public static final int MAX_NAME_LENGTH = 100;
+    public static final int MIN_AGE = 4;
+    public static final int MAX_AGE = 180;
+
+    public int addTestStudents(int count,
+                               int minNameLength, int maxNameLength,
+                               int minAge, int maxAge) {
+
+        removeTestStudents();
+
+        if (count <= 0) {
+            count = 1;
+        } else if (count > ADD_TEST_LIMIT) {
+            count = ADD_TEST_LIMIT;
+        }
+
+        if (minNameLength < MIN_NAME_LENGTH) {
+            minNameLength = MIN_NAME_LENGTH;
+        } else if (maxNameLength > MAX_NAME_LENGTH) {
+            maxNameLength = MAX_NAME_LENGTH;
+        }
+
+        if (minAge < MIN_AGE) {
+            minAge = MIN_AGE;
+        } else if (maxAge > MAX_AGE) {
+            maxAge = MAX_AGE;
+        }
+
+        var random = new Random();
+        for (int i = 0; i < count; i++) {
+            final Student student = new Student(0L,
+                    NameGenerator.getName(minNameLength, maxNameLength, null) + " " +
+                            NameGenerator.getName(minNameLength, maxNameLength + maxNameLength / 5,
+                                    TEST_NAME_SUFFIX),
+                    random.nextInt(minAge, maxAge),
+                    null);
+            studentRepository.save(student);
+        }
+        return count;
+    }
+
+    public void removeTestStudents() {
+
+        List<Student> students = studentRepository.findByNameSuffix(TEST_NAME_SUFFIX);
+        studentRepository.deleteAll(students);
     }
 }
