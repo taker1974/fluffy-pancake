@@ -11,6 +11,5 @@
 --Индекс для поиска по имени студента.
 --Индекс для поиска по названию и цвету факультета (см. faculty.sql).
 
--- changeset kostusonline:1
-CREATE INDEX student_name_index ON student (name);
-CREATE INDEX users_sh_idx ON users (street, house);
+-- changeSet kostusonline:2 runOnChange:true
+CREATE INDEX IF NOT EXISTS student_name_index ON student (name);

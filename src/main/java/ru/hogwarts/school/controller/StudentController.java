@@ -108,6 +108,14 @@ public class StudentController {
         return studentService.getCountOfStudents();
     }
 
+    /**
+     * Шаг 2 (Модификация уже существующего эндпоинта)
+     * <p>
+     * Создать эндпоинт, который будет возвращать средний возраст всех студентов. Для получения информации о всех
+     * студентах опять же следует использовать метод репозитория findAll()
+     *
+     * @return средний возраст всех студентов
+     */
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Получение среднего возраста студентов")
     @GetMapping(value = "/stat/age/average")
@@ -120,5 +128,85 @@ public class StudentController {
     @GetMapping(value = "/stat/last/{limit}")
     public List<Student> getLastStudentsById(@PathVariable int limit) {
         return studentService.getLastStudentsById(limit);
+    }
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Добавление n студентов для тестов. Возвращает количество добавленных студентов")
+    @PostMapping("/test/add")
+    public Integer addTestStudents(int count,
+                                   int minNameLength, int maxNameLength,
+                                   int minAge, int maxAge) {
+
+        return studentService.addTestStudents(count, minNameLength, maxNameLength, minAge, maxAge);
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Удаление студентов, созданных для тестов")
+    @DeleteMapping("/test/delete")
+    public void deleteTestStudents() {
+        studentService.removeTestStudents();
+    }
+
+    /**
+     * Шаг 1
+     * <p>
+     * Добавить эндпоинт для получения всех имен всех студентов, чье имя начинается с буквы А. В ответе должен
+     * находиться отсортированный в алфавитном порядке список с именами в верхнем регистре.
+     * Для получения всех студентов из базы использовать метод репозитория findAll().
+     *
+     * @param letter начальный символ имени
+     * @return список с именами студентов
+     */
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение списка студентов с именами на букву letter. Возвращает отсортированный список " +
+            "имён в верхнем регистре")
+    @GetMapping(value = "/starts/with/{letter}")
+    public List<String> getStudentsByLetter(@PathVariable String letter) {
+        return studentService.getStudentNames(letter);
+    }
+
+    /**
+     * Шаг 1
+     * <p>
+     * Создать в StudentController эндпоинт GET /students/print-parallel.
+     * <p>
+     * Эндпоинт должен выводить в консоль имена всех студентов в параллельном режиме, а именно:
+     * <p>
+     * первые два имени вывести в основном потоке
+     * имена третьего и четвертого студента вывести в параллельном потоке
+     * имена пятого и шестого студента вывести в еще одном параллельном потоке.
+     * Для вывода используйте команду System.out.println().
+     * <p>
+     * В итоге в консоли должен появиться список из шести имен в порядке, возможно отличном от порядка в коллекции.
+     */
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Вывод [ограниченного] списка студентов в консоль в параллельном режиме")
+    @GetMapping(value = "/print-parallel")
+    public String printStudentsParallel() {
+        return studentService.printStudents(false);
+    }
+
+    /**
+     * Шаг 2
+     * <p>
+     * Создать в StudentController эндпоинт GET /students/print-synchronized.
+     * <p>
+     * Эндпоинт должен выводить в консоль имена всех студентов в синхронном режиме.
+     * <p>
+     * Для этого создайте отдельный синхронизированный метод для вывода имен в консоль.
+     * <p>
+     * Далее необходимо, используя ранее созданный синхронизированный метод :
+     * <p>
+     * первые два имени вывести в основном потоке
+     * имена третьего и четвертого студента в параллельном потоке
+     * имена пятого и шестого студента в еще одном параллельном потоке
+     * В итоге в консоли должен появиться список из шести имен в порядке, возможно отличном от порядка в коллекции
+     */
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Вывод [ограниченного] списка студентов в консоль в параллельном режиме, ограниченном " +
+            "синхронизированным методом печати")
+    @GetMapping(value = "/print-synchronized")
+    public String printStudentsSynchronized() {
+        return studentService.printStudents(true);
     }
 }
