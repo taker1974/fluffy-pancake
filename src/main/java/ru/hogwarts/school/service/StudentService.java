@@ -13,9 +13,11 @@ import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.tools.LogEx;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -215,5 +217,56 @@ public class StudentService {
                 .filter(s -> s.getName().toUpperCase().startsWith(firstLetter))
                 .map(s -> s.getName().toUpperCase())
                 .sorted().toList();
+    }
+
+    public static final int PRINT_CHUNK_SIZE = 2;
+
+    private static final Object lockPrintChunk = new Object();
+
+    private void printChunk(final boolean isSync, final List<String> strings) {
+        if (isSync) {
+            synchronized (lockPrintChunk) {
+                strings.forEach(System.out::println);
+            }
+        } else {
+            strings.forEach(System.out::println);
+        }
+    }
+
+    public String printStudents(boolean isSync) {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING, "isSync = " + isSync);
+
+        final List<String> students = studentRepository.findAll().stream()
+                .map(Student::getName)
+                .limit(PRINT_CHUNK_SIZE * 3)
+                .toList();
+
+        if (students.size() < PRINT_CHUNK_SIZE * 3) {
+            LogEx.info(log, LogEx.getThisMethodName(), "students.size() < PRINT_CHUNK_SIZE * 3");
+            return "Недостаточно студентов";
+        }
+
+        printChunk(isSync, students.subList(0, PRINT_CHUNK_SIZE));
+
+        final var threads = new Thread[2];
+        threads[0] = new Thread(() -> printChunk(isSync, Collections.unmodifiableList(
+                students.subList(2, 2 + PRINT_CHUNK_SIZE))));
+        threads[1] = new Thread(() -> printChunk(isSync, Collections.unmodifiableList(
+                students.subList(4, 4 + PRINT_CHUNK_SIZE))));
+
+        try {
+            for (Thread thread : threads) {
+                thread.start();
+            }
+            for (Thread thread : threads) {
+                thread.join();
+            }
+        } catch (InterruptedException | IllegalThreadStateException e) {
+            LogEx.error(log, LogEx.getThisMethodName(), e);
+            return "Ошибка при ожидании завершения потока";
+        }
+
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPING);
+        return "Список выведен к консоль в параллельном режиме";
     }
 }
