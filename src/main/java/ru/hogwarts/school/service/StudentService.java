@@ -124,7 +124,15 @@ public class StudentService {
      */
     public double getAverageAgeOfStudents() {
         LogEx.trace(log, LogEx.getThisMethodName(), LogEx.SHORT_RUN);
-        return studentRepository.getAverageAgeOfStudents();
+
+        // Это неверный способ.
+        // Для повышения производительности надо считать среднее по каждому куску стрима,
+        // и затем считать среднее от суммы таких средних.
+        // Я не знаю, как это сделать.
+        return studentRepository.findAll()
+                .parallelStream()
+                .mapToInt(Student::getAge)
+                .average().orElse(0.0);
     }
 
     /**
@@ -145,6 +153,7 @@ public class StudentService {
     public int addTestStudents(int count,
                                int minNameLength, int maxNameLength,
                                int minAge, int maxAge) {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING, "count = " + count);
 
         removeTestStudents();
 
@@ -176,12 +185,35 @@ public class StudentService {
                     null);
             studentRepository.save(student);
         }
+
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPING);
         return count;
     }
 
     public void removeTestStudents() {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING);
 
         List<Student> students = studentRepository.findByNameSuffix(TEST_NAME_SUFFIX);
         studentRepository.deleteAll(students);
+
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPED);
+    }
+
+    public List<String> getStudentNames(String letter) {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING, "letter = " + letter);
+
+        if (letter == null || letter.isEmpty()) {
+            letter = "A";
+            LogEx.info(log, LogEx.getThisMethodName(), "letter -> " + letter);
+        }
+
+        final String firstLetter = letter.toUpperCase();
+
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPING);
+        return studentRepository.findAll()
+                .parallelStream()
+                .filter(s -> s.getName().toUpperCase().startsWith(firstLetter))
+                .map(s -> s.getName().toUpperCase())
+                .sorted().toList();
     }
 }

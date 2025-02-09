@@ -108,6 +108,14 @@ public class StudentController {
         return studentService.getCountOfStudents();
     }
 
+    /**
+     * Шаг 2 (Модификация уже существующего эндпоинта)
+     * <p>
+     * Создать эндпоинт, который будет возвращать средний возраст всех студентов. Для получения информации о всех
+     * студентах опять же следует использовать метод репозитория findAll()
+     *
+     * @return средний возраст всех студентов
+     */
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Получение среднего возраста студентов")
     @GetMapping(value = "/stat/age/average")
@@ -137,5 +145,23 @@ public class StudentController {
     @DeleteMapping("/test/delete")
     public void deleteTestStudents() {
         studentService.removeTestStudents();
+    }
+
+    /**
+     * Шаг 1
+     * <p>
+     * Добавить эндпоинт для получения всех имен всех студентов, чье имя начинается с буквы А. В ответе должен
+     * находиться отсортированный в алфавитном порядке список с именами в верхнем регистре.
+     * Для получения всех студентов из базы использовать метод репозитория findAll().
+     *
+     * @param letter начальный символ имени
+     * @return список с именами студентов
+     */
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение списка студентов с именами на букву letter. Возвращает отсортированный список " +
+            "имён в верхнем регистре")
+    @GetMapping(value = "/starts/with/{letter}")
+    public List<String> getStudentsByLetter(@PathVariable String letter) {
+        return studentService.getStudentNames(letter);
     }
 }

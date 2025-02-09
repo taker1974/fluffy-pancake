@@ -8,11 +8,22 @@ import ru.hogwarts.school.exception.faculty.FacultyAlreadyExistsException;
 import ru.hogwarts.school.exception.faculty.FacultyNotFoundException;
 import ru.hogwarts.school.exception.faculty.NullFacultyException;
 import ru.hogwarts.school.model.Faculty;
+import ru.hogwarts.school.model.NameGenerator;
 import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.tools.LogEx;
 
+import java.math.BigInteger;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+
+import static java.lang.Long.sum;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +59,7 @@ public class FacultyService {
         if (faculty == null) {
             throw new NullFacultyException();
         }
-        if (facultyRepository.findById(faculty.getId()).isEmpty()){
+        if (facultyRepository.findById(faculty.getId()).isEmpty()) {
             throw new FacultyNotFoundException();
         }
 
@@ -82,5 +93,105 @@ public class FacultyService {
         LogEx.trace(log, LogEx.getThisMethodName(), LogEx.SHORT_RUN,
                 "name = " + name + ", color = " + color);
         return facultyRepository.findByNameOrColorIgnoreCase(name, color);
+    }
+
+    public static final int ADD_TEST_LIMIT = 100_000;
+    public static final String TEST_NAME_SUFFIX = " [gen]";
+    public static final int MIN_NAME_LENGTH = 2;
+    public static final int MAX_NAME_LENGTH = 100;
+
+    public int addTestFaculties(int count,
+                                int minNameLength, int maxNameLength) {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING, "count = " + count);
+
+        removeTestFaculties();
+
+        if (count <= 0) {
+            count = 1;
+        } else if (count > ADD_TEST_LIMIT) {
+            count = ADD_TEST_LIMIT;
+        }
+
+        if (minNameLength < MIN_NAME_LENGTH) {
+            minNameLength = MIN_NAME_LENGTH;
+        } else if (maxNameLength > MAX_NAME_LENGTH) {
+            maxNameLength = MAX_NAME_LENGTH;
+        }
+
+        var random = new Random();
+        for (int i = 0; i < count; i++) {
+            final Faculty faculty = new Faculty(0L,
+                    NameGenerator.getName(minNameLength, maxNameLength, TEST_NAME_SUFFIX),
+                    NameGenerator.getName(minNameLength, maxNameLength, null),
+                    null);
+            facultyRepository.save(faculty);
+        }
+
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPING);
+        return count;
+    }
+
+    public void removeTestFaculties() {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING);
+        facultyRepository.deleteAll(facultyRepository.findByNameSuffix(TEST_NAME_SUFFIX));
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPED);
+    }
+
+    private boolean selectBigger(AtomicInteger currentMax, int testingLength) {
+
+        if (testingLength > currentMax.get()) {
+            currentMax.set(testingLength);
+            return true;
+        }
+        return false;
+    }
+
+    public String getLongestNameDumb() {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING);
+
+        List<String> names = facultyRepository.findAll()
+                .stream()
+                .map(Faculty::getName).toList();
+
+        String longestName = "";
+        for (String name : names) {
+            if (name.length() > longestName.length()) {
+                longestName = name;
+            }
+        }
+
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPING);
+        return longestName;
+    }
+
+    public String getLongestName() {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING);
+
+        String name = facultyRepository.findAll()
+                .parallelStream()
+                .map(Faculty::getName)
+                .max(Comparator.comparingInt(String::length))
+                .orElse("");
+
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPING);
+        return name;
+    }
+
+    public double getSumDumb(long limit) {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING, "limit = " + limit);
+
+        double sum = Stream.iterate(1L, a -> a + 1L).limit(1_000_000).reduce(0L, Long::sum);
+
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPING, "sum = " + sum);
+        return sum;
+    }
+
+    public double getSum(long limit) {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING);
+
+        double sum = LongStream.rangeClosed(1, limit).parallel().sum();
+
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPING);
+        return sum;
     }
 }

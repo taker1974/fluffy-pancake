@@ -17,8 +17,11 @@ import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.FacultyService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping(value = "/faculty")
@@ -82,5 +85,100 @@ public class FacultyController {
     @GetMapping(value = "/{facultyId}/students")
     public Set<Student> findStudentsByFaculty(@PathVariable long facultyId) {
         return facultyService.getFaculty(facultyId).getStudents();
+    }
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Добавление n факультетов для тестов. Возвращает количество добавленных факультетов")
+    @PostMapping("/test/add")
+    public Integer addTestFaculties(int count,
+                                    int minNameLength, int maxNameLength) {
+
+        return facultyService.addTestFaculties(count, minNameLength, maxNameLength);
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Удаление факультетов, созданных для тестов")
+    @DeleteMapping("/test/delete")
+    public void deleteTestFaculties() {
+        facultyService.removeTestFaculties();
+    }
+
+    /**
+     * Шаг 3
+     * <p>
+     * Создать эндпоинт, который будет возвращать самое длинное название факультета.
+     *
+     * @return список строк результата
+     */
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение самых длинных названий факультетов")
+    @GetMapping(value = "/filter/names/longest")
+    public List<String> getLongestFacultyNames() {
+
+        List<String> results = new ArrayList<>(50);
+
+        long s = System.nanoTime();
+        String name = facultyService.getLongestNameDumb();
+        double t = (System.nanoTime() - s) / 1E6;
+        results.add("Самое длинное название факультета, тупой способ:");
+        results.add(String.format("  %d символов, %s", name.length(), name));
+        results.add(String.format("  время поиска: %f мс", t));
+        results.add("");
+
+        s = System.nanoTime();
+        name = facultyService.getLongestName();
+        t = (System.nanoTime() - s) / 1E6;
+        results.add("Самое длинное название факультета, менее тупой способ:");
+        results.add(String.format("  %d символов, %s", name.length(), name));
+        results.add(String.format("  время поиска: %f мс", t));
+        results.add("");
+
+        return results;
+    }
+
+    /**
+     * В ДЗ содержится ошибка переполнения int:
+     * <p>
+     * int sum = Stream.iterate(1, a -> a +1) .limit(1_000_000) .reduce(0, (a, b) -> a + b );
+     * Сумма этого ряда - 500 000 500 000, что превышает максимально допустимое значение int.
+     * <p>
+     * Правильное условие для ряда больше 1М:
+     * <p>
+     * long sum = Stream.iterate(1L, a -> a + 1L).limit(1_000_000).reduce(0L, (a, b) -> a + b );
+     * или
+     * long sum = Stream.iterate(1L, a -> a + 1L).limit(1_000_000).reduce(0L, Long::sum);
+     * <p>
+     * Шаг 4
+     * <p>
+     * Создать эндпоинт (не важно в каком контроллере), который будет возвращать целочисленное значение. Это значение
+     * вычисляется следующей формулой:
+     * <p>
+     * int sum = Stream.iterate(1, a -> a +1) .limit(1_000_000) .reduce(0, (a, b) -> a + b );
+     * Необходимо придумать способ уменьшить время ответа эндпоинта путем модификации вышеописанного выражения.
+     *
+     * @return список строк результата
+     */
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Получение суммы ряда")
+    @GetMapping(value = "/test/sum")
+    public List<String> getSums() {
+
+        List<String> results = new ArrayList<>(50);
+        long limit = 1_000_000;
+
+        long s = System.nanoTime();
+        double value = facultyService.getSumDumb(limit);
+        double t = (System.nanoTime() - s) / 1E6;
+        results.add("Сумма ряда от 1 до " + limit + ", тупой способ: " + value);
+        results.add(String.format("  время вычисления: %f мс", t));
+        results.add("");
+
+        s = System.nanoTime();
+        value = facultyService.getSum(limit);
+        t = (System.nanoTime() - s) / 1E6;
+        results.add("Сумма ряда от 1 до " + limit + ", менее тупой способ: " + value);
+        results.add(String.format("  время вычисления: %f мс", t));
+
+        return results;
     }
 }
