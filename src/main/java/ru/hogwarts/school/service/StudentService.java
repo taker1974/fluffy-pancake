@@ -13,6 +13,7 @@ import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.tools.LogEx;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -220,16 +221,20 @@ public class StudentService {
 
     public static final int PRINT_CHUNK_SIZE = 2;
 
-    private void printChunk(List<String> strings) {
-        strings.forEach(System.out::println);
+    private static final Object lockPrintChunk = new Object();
+
+    private void printChunk(final boolean isSync, final List<String> strings) {
+        if (isSync) {
+            synchronized (lockPrintChunk) {
+                strings.forEach(System.out::println);
+            }
+        } else {
+            strings.forEach(System.out::println);
+        }
     }
 
-    private synchronized void printChunkSynchronized(List<String> strings) {
-        strings.forEach(System.out::println);
-    }
-
-    public String printParallel() {
-        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING);
+    public String printStudents(boolean isSync) {
+        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING, "isSync = " + isSync);
 
         final List<String> students = studentRepository.findAll().stream()
                 .map(Student::getName)
@@ -241,55 +246,22 @@ public class StudentService {
             return "Недостаточно студентов";
         }
 
-        printChunk(students.subList(0, PRINT_CHUNK_SIZE));
+        printChunk(isSync, students.subList(0, PRINT_CHUNK_SIZE));
 
-        final Thread[] threads = new Thread[2];
-        threads[0] = new Thread(() -> printChunk(students.subList(2, 2 + PRINT_CHUNK_SIZE)));
-        threads[1] = new Thread(() -> printChunk(students.subList(4, 4 + PRINT_CHUNK_SIZE)));
-        for (Thread thread : threads) {
-            thread.start();
-        }
+        final var threads = new Thread[2];
+        threads[0] = new Thread(() -> printChunk(isSync, Collections.unmodifiableList(
+                students.subList(2, 2 + PRINT_CHUNK_SIZE))));
+        threads[1] = new Thread(() -> printChunk(isSync, Collections.unmodifiableList(
+                students.subList(4, 4 + PRINT_CHUNK_SIZE))));
 
-        try{
+        try {
+            for (Thread thread : threads) {
+                thread.start();
+            }
             for (Thread thread : threads) {
                 thread.join();
             }
-        } catch (InterruptedException e) {
-            LogEx.error(log, LogEx.getThisMethodName(), e);
-            return "Ошибка при ожидании завершения потока";
-        }
-
-        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPING);
-        return "Список выведен к консоль в параллельном режиме";
-    }
-
-    public String printSynchronized() {
-        LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING);
-
-        final List<String> students = studentRepository.findAll().stream()
-                .map(Student::getName)
-                .limit(PRINT_CHUNK_SIZE * 3)
-                .toList();
-
-        if (students.size() < PRINT_CHUNK_SIZE * 3) {
-            LogEx.info(log, LogEx.getThisMethodName(), "students.size() < PRINT_CHUNK_SIZE * 3");
-            return "Недостаточно студентов";
-        }
-
-        printChunkSynchronized(students.subList(0, PRINT_CHUNK_SIZE));
-
-        final Thread[] threads = new Thread[2];
-        threads[0] = new Thread(() -> printChunkSynchronized(students.subList(2, 2 + PRINT_CHUNK_SIZE)));
-        threads[1] = new Thread(() -> printChunkSynchronized(students.subList(4, 4 + PRINT_CHUNK_SIZE)));
-        for (Thread thread : threads) {
-            thread.start();
-        }
-
-        try{
-            for (Thread thread : threads) {
-                thread.join();
-            }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | IllegalThreadStateException e) {
             LogEx.error(log, LogEx.getThisMethodName(), e);
             return "Ошибка при ожидании завершения потока";
         }

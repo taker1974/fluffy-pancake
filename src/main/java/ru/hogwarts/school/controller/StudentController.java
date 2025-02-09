@@ -183,7 +183,7 @@ public class StudentController {
     @Operation(summary = "Вывод [ограниченного] списка студентов в консоль в параллельном режиме")
     @GetMapping(value = "/print-parallel")
     public String printStudentsParallel() {
-        return studentService.printParallel();
+        return studentService.printStudents(false);
     }
 
     /**
@@ -207,6 +207,6 @@ public class StudentController {
             "синхронизированным методом печати")
     @GetMapping(value = "/print-synchronized")
     public String printStudentsSynchronized() {
-        return studentService.printSynchronized();
+        return studentService.printStudents(true);
     }
 }
