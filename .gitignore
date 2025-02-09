@@ -38,4 +38,5 @@ build/
 ### VS Code ###
 .vscode/
 
+# Логи от ДЗ про логи
 /logs/*.log
