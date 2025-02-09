@@ -164,4 +164,49 @@ public class StudentController {
     public List<String> getStudentsByLetter(@PathVariable String letter) {
         return studentService.getStudentNames(letter);
     }
+
+    /**
+     * Шаг 1
+     * <p>
+     * Создать в StudentController эндпоинт GET /students/print-parallel.
+     * <p>
+     * Эндпоинт должен выводить в консоль имена всех студентов в параллельном режиме, а именно:
+     * <p>
+     * первые два имени вывести в основном потоке
+     * имена третьего и четвертого студента вывести в параллельном потоке
+     * имена пятого и шестого студента вывести в еще одном параллельном потоке.
+     * Для вывода используйте команду System.out.println().
+     * <p>
+     * В итоге в консоли должен появиться список из шести имен в порядке, возможно отличном от порядка в коллекции.
+     */
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Вывод [ограниченного] списка студентов в консоль в параллельном режиме")
+    @GetMapping(value = "/print-parallel")
+    public String printStudentsParallel() {
+        return studentService.printStudents(false);
+    }
+
+    /**
+     * Шаг 2
+     * <p>
+     * Создать в StudentController эндпоинт GET /students/print-synchronized.
+     * <p>
+     * Эндпоинт должен выводить в консоль имена всех студентов в синхронном режиме.
+     * <p>
+     * Для этого создайте отдельный синхронизированный метод для вывода имен в консоль.
+     * <p>
+     * Далее необходимо, используя ранее созданный синхронизированный метод :
+     * <p>
+     * первые два имени вывести в основном потоке
+     * имена третьего и четвертого студента в параллельном потоке
+     * имена пятого и шестого студента в еще одном параллельном потоке
+     * В итоге в консоли должен появиться список из шести имен в порядке, возможно отличном от порядка в коллекции
+     */
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Вывод [ограниченного] списка студентов в консоль в параллельном режиме, ограниченном " +
+            "синхронизированным методом печати")
+    @GetMapping(value = "/print-synchronized")
+    public String printStudentsSynchronized() {
+        return studentService.printStudents(true);
+    }
 }
