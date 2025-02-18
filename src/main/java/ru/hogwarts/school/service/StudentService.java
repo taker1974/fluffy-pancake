@@ -151,6 +151,8 @@ public class StudentService {
     public static final int MIN_AGE = 4;
     public static final int MAX_AGE = 180;
 
+    private final Random random = new Random();
+
     public int addTestStudents(int count,
                                int minNameLength, int maxNameLength,
                                int minAge, int maxAge) {
@@ -176,7 +178,6 @@ public class StudentService {
             maxAge = MAX_AGE;
         }
 
-        var random = new Random();
         for (int i = 0; i < count; i++) {
             final Student student = new Student(0L,
                     NameGenerator.getName(minNameLength, maxNameLength, null) + " " +
