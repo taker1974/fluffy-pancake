@@ -16,7 +16,6 @@ public class CommonControllerAdvice extends AbstractBaseControllerAdvice {
 
     public static final int E_CODE = 160;
 
-    @SuppressWarnings("unused")
     @ExceptionHandler(Exception.class)
     @Order()
     public ResponseEntity<ErrorResponseDto> handleException(Exception e) {
@@ -26,7 +25,6 @@ public class CommonControllerAdvice extends AbstractBaseControllerAdvice {
 
     public static final int RTE_CODE = 427;
 
-    @SuppressWarnings("unused")
     @ExceptionHandler(RuntimeException.class)
     @Order(Ordered.LOWEST_PRECEDENCE - 1)
     public ResponseEntity<ErrorResponseDto> handleRuntimeException(RuntimeException e) {
@@ -37,7 +35,6 @@ public class CommonControllerAdvice extends AbstractBaseControllerAdvice {
 
     public static final int NPE_CODE = 467;
 
-    @SuppressWarnings("unused")
     @ExceptionHandler(NullPointerException.class)
     @Order(Ordered.LOWEST_PRECEDENCE - 2)
     public ResponseEntity<ErrorResponseDto> handleNpe(NullPointerException e) {
@@ -47,7 +44,6 @@ public class CommonControllerAdvice extends AbstractBaseControllerAdvice {
 
     public static final int IAE_CODE = 881;
 
-    @SuppressWarnings("unused")
     @ExceptionHandler(IllegalArgumentException.class)
     @Order(Ordered.LOWEST_PRECEDENCE - 3)
     public ResponseEntity<ErrorResponseDto> handleIAE(IllegalArgumentException e) {

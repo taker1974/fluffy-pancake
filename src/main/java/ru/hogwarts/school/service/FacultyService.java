@@ -12,18 +12,11 @@ import ru.hogwarts.school.model.NameGenerator;
 import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.tools.LogEx;
 
-import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
-
-import static java.lang.Long.sum;
 
 @Service
 @RequiredArgsConstructor
@@ -118,7 +111,6 @@ public class FacultyService {
             maxNameLength = MAX_NAME_LENGTH;
         }
 
-        var random = new Random();
         for (int i = 0; i < count; i++) {
             final Faculty faculty = new Faculty(0L,
                     NameGenerator.getName(minNameLength, maxNameLength, TEST_NAME_SUFFIX),
@@ -135,15 +127,6 @@ public class FacultyService {
         LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STARTING);
         facultyRepository.deleteAll(facultyRepository.findByNameSuffix(TEST_NAME_SUFFIX));
         LogEx.trace(log, LogEx.getThisMethodName(), LogEx.STOPPED);
-    }
-
-    private boolean selectBigger(AtomicInteger currentMax, int testingLength) {
-
-        if (testingLength > currentMax.get()) {
-            currentMax.set(testingLength);
-            return true;
-        }
-        return false;
     }
 
     public String getLongestNameDumb() {

@@ -17,35 +17,30 @@ import ru.hogwarts.school.exception.faculty.NullFacultyException;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class FacultyControllerAdvice extends AbstractBaseControllerAdvice {
 
-    @SuppressWarnings("unused")
     @ExceptionHandler(BadFacultyColorException.class)
     public ResponseEntity<ErrorResponseDto> handleBadFacultyColorException(BadFacultyColorException e) {
         return new ResponseEntity<>(new ErrorResponseDto(BadFacultyColorException.CODE, e.getMessage()),
                 HttpStatus.NOT_ACCEPTABLE);
     }
 
-    @SuppressWarnings("unused")
     @ExceptionHandler(BadFacultyNameException.class)
     public ResponseEntity<ErrorResponseDto> handleBadFacultyNameException(BadFacultyNameException e) {
         return new ResponseEntity<>(new ErrorResponseDto(BadFacultyNameException.CODE, e.getMessage()),
                 HttpStatus.NOT_ACCEPTABLE);
     }
 
-    @SuppressWarnings("unused")
     @ExceptionHandler(FacultyAlreadyExistsException.class)
     public ResponseEntity<ErrorResponseDto> handleFacultyAlreadyExistsException(FacultyAlreadyExistsException e) {
         return new ResponseEntity<>(new ErrorResponseDto(FacultyAlreadyExistsException.CODE, e.getMessage()),
                 HttpStatus.CONFLICT);
     }
 
-    @SuppressWarnings("unused")
     @ExceptionHandler(FacultyNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleFacultyNotFoundException(FacultyNotFoundException e) {
         return new ResponseEntity<>(new ErrorResponseDto(FacultyNotFoundException.CODE, e.getMessage()),
                 HttpStatus.NOT_FOUND);
     }
 
-    @SuppressWarnings("unused")
     @ExceptionHandler(NullFacultyException.class)
     public ResponseEntity<ErrorResponseDto> handleNullFacultyException(NullFacultyException e) {
         return new ResponseEntity<>(new ErrorResponseDto(NullFacultyException.CODE, e.getMessage()),

@@ -25,7 +25,6 @@ import java.util.List;
 @RequestMapping(value = "/student")
 @Tag(name = "Студенты")
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class StudentController {
 
     private final StudentService studentService;

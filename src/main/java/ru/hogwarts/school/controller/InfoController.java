@@ -17,7 +17,6 @@ import ru.hogwarts.school.tools.LogEx;
 @RequestMapping(value = "/info")
 @Tag(name = "Информация о сервере")
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class InfoController {
 
     Logger log = LoggerFactory.getLogger(InfoController.class);

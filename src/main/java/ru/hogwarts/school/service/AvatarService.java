@@ -40,7 +40,6 @@ import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class AvatarService {
 
     public static final String STUDENT_ID_PREFIX = "studentId = ";

@@ -4,10 +4,14 @@ import java.util.Random;
 
 public class NameGenerator {
 
-    public static final char[] VOWELS_LOWER = "aeiou".toCharArray();
-    public static final char[] VOWELS_UPPER = "AEIOU".toCharArray();
-    public static final char[] CONSONANTS_LOWER = "bcdfghjklmnpqrstvwxyz".toCharArray();
-    public static final char[] CONSONANTS_UPPER = "BCDFGHJKLMNPQRSTVWXYZ".toCharArray();
+    private NameGenerator() {}
+
+    protected static final char[] VOWELS_LOWER = "aeiou".toCharArray();
+    protected static final char[] VOWELS_UPPER = "AEIOU".toCharArray();
+    protected static final char[] CONSONANTS_LOWER = "bcdfghjklmnpqrstvwxyz".toCharArray();
+    protected static final char[] CONSONANTS_UPPER = "BCDFGHJKLMNPQRSTVWXYZ".toCharArray();
+
+    private static final Random random = new Random();
 
     public static String getName(int minLength, int maxLength, String suffix) {
 
@@ -15,19 +19,16 @@ public class NameGenerator {
             throw new IllegalArgumentException("Invalid minLength or maxLength");
         }
 
-        var random = new Random();
         int length = random.nextInt(minLength, maxLength);
         var name = new StringBuilder(length);
 
         boolean isPrevVowel = random.nextBoolean();
-        name.append(isPrevVowel ?
-                VOWELS_UPPER[random.nextInt(VOWELS_UPPER.length)] :
-                CONSONANTS_UPPER[random.nextInt(CONSONANTS_UPPER.length)]);
+        name.append(isPrevVowel ? VOWELS_UPPER[random.nextInt(VOWELS_UPPER.length)]
+                : CONSONANTS_UPPER[random.nextInt(CONSONANTS_UPPER.length)]);
 
         for (int i = 1; i < length; i++) {
-            name.append(isPrevVowel ?
-                    CONSONANTS_LOWER[random.nextInt(CONSONANTS_LOWER.length)] :
-                    VOWELS_LOWER[random.nextInt(VOWELS_LOWER.length)]);
+            name.append(isPrevVowel ? CONSONANTS_LOWER[random.nextInt(CONSONANTS_LOWER.length)]
+                    : VOWELS_LOWER[random.nextInt(VOWELS_LOWER.length)]);
             isPrevVowel = !isPrevVowel;
         }
 

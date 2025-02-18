@@ -33,7 +33,6 @@ import java.util.List;
 @RequestMapping(value = "/avatar")
 @Tag(name = "Аватары студентов")
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class AvatarController {
 
     private final AvatarService avatarService;

@@ -20,8 +20,6 @@ import ru.hogwarts.school.service.FacultyService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
 
 @RestController
 @RequestMapping(value = "/faculty")

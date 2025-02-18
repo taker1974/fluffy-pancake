@@ -17,35 +17,30 @@ import ru.hogwarts.school.exception.student.StudentNotFoundException;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class StudentControllerAdvice extends AbstractBaseControllerAdvice {
 
-    @SuppressWarnings("unused")
     @ExceptionHandler(BadStudentAgeException.class)
     public ResponseEntity<ErrorResponseDto> handleBadStudentAgeException(BadStudentAgeException e) {
         return new ResponseEntity<>(new ErrorResponseDto(BadStudentAgeException.CODE, e.getMessage()),
                 HttpStatus.NOT_ACCEPTABLE);
     }
 
-    @SuppressWarnings("unused")
     @ExceptionHandler(BadStudentNameException.class)
     public ResponseEntity<ErrorResponseDto> handleBadStudentNameException(BadStudentNameException e) {
         return new ResponseEntity<>(new ErrorResponseDto(BadStudentNameException.CODE, e.getMessage()),
                 HttpStatus.NOT_ACCEPTABLE);
     }
 
-    @SuppressWarnings("unused")
     @ExceptionHandler(NullStudentException.class)
     public ResponseEntity<ErrorResponseDto> handleNullStudentException(NullStudentException e) {
         return new ResponseEntity<>(new ErrorResponseDto(NullStudentException.CODE, e.getMessage()),
                 HttpStatus.BAD_REQUEST);
     }
 
-    @SuppressWarnings("unused")
     @ExceptionHandler(StudentAlreadyExistsException.class)
     public ResponseEntity<ErrorResponseDto> handleStudentAlreadyExistsException(StudentAlreadyExistsException e) {
         return new ResponseEntity<>(new ErrorResponseDto(StudentAlreadyExistsException.CODE, e.getMessage()),
                 HttpStatus.CONFLICT);
     }
 
-    @SuppressWarnings("unused")
     @ExceptionHandler(StudentNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleStudentNotFoundException(StudentNotFoundException e) {
         return new ResponseEntity<>(new ErrorResponseDto(StudentNotFoundException.CODE, e.getMessage()),
