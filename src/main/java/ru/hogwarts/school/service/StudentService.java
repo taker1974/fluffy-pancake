@@ -8,10 +8,10 @@ import ru.hogwarts.school.exception.student.NullStudentException;
 import ru.hogwarts.school.exception.student.StudentAlreadyExistsException;
 import ru.hogwarts.school.exception.student.StudentNotFoundException;
 import ru.hogwarts.school.model.Faculty;
-import ru.hogwarts.school.model.NameGenerator;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.tools.LogEx;
+import ru.hogwarts.school.tools.NameGenerator;
 
 import java.util.Collections;
 import java.util.List;

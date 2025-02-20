@@ -8,9 +8,9 @@ import ru.hogwarts.school.exception.faculty.FacultyAlreadyExistsException;
 import ru.hogwarts.school.exception.faculty.FacultyNotFoundException;
 import ru.hogwarts.school.exception.faculty.NullFacultyException;
 import ru.hogwarts.school.model.Faculty;
-import ru.hogwarts.school.model.NameGenerator;
 import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.tools.LogEx;
+import ru.hogwarts.school.tools.NameGenerator;
 
 import java.util.Comparator;
 import java.util.List;
